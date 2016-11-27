@@ -1,0 +1,18 @@
+{
+  "name": "isotropy-parser-db",
+  "version": "0.0.9",
+  "author": "Jeswin<jeswinpk@agilehead.com>",
+  "scripts": {
+    "test": "mocha dist/test/test.js"
+  },
+  "dependencies": {
+    "babel-core": "^6.18.2",
+    "isotropy-error": "^0.0.1"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-async-to-generator": "^6.16.0",
+    "babel-preset-modern-browsers": "^7.0.0",
+    "mocha": "*",
+    "should": "*"
+  }
+}

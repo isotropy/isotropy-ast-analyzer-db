@@ -1,0 +1,5 @@
+{
+  "sourceMaps": true,
+  "presets": ["modern-browsers"],
+  "plugins": ["transform-async-to-generator"]
+}
