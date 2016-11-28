@@ -10,7 +10,7 @@ export function all(expressions, then) {
     if (typeof result !== "undefined") {
       results.push(result);
     } else {
-      return then ? then([]) : [];
+      return then && then();
     }
   }
 
@@ -23,7 +23,8 @@ export function all(expressions, then) {
 */
 
 export function single(expression, then) {
-  return all([expression], then);
+  const result = expression();
+  return then && then(result);
 }
 
 

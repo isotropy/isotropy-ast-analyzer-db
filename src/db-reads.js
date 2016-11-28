@@ -85,17 +85,17 @@ function parseFilter(path) {
   return path.isCallExpression() && path.node.callee.property.name === "filter" ?
     expressions.single(
       () => parseQueryables(path.get("callee").get("object")),
-      ([query]) => queryable.filter(query, getFilterParams(path.get("arguments")))
+      query => queryable.filter(query, getFilterArgs(path.get("arguments")))
     ) :
     undefined;
 }
 
 
-function getFilterParams(path) {
-  ensureSingleParam(path, "PARSER_DB_FILTER_PARAM_COUNT");
+function getFilterArgs(path) {
+  ensureSingleParam(path, "PARSER_DB_FILTER_ARG_COUNT");
   const fnExpr = path[0];
   ensureArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_ARROW_FUNCTION");
-  return fnExpr.get("body");
+  return fnExpr.get("body").node;
 }
 
 
@@ -107,14 +107,17 @@ function parseMap(path) {
   return path.isCallExpression() && path.node.callee.property.name === "map" ?
     expressions.single(
       () => parseQueryables(path.get("callee").get("object")),
-      ([query, mapping]) => queryable.map(query, parseMapParams(path.get("arguments")))
+      query => queryable.map(query, getMapArgs(path.get("arguments")))
     ) :
     undefined;
 }
 
 
-function parseMapParams(path) {
-
+function getMapArgs(path) {
+  ensureSingleParam(path, "PARSER_DB_MAP_ARG_COUNT");
+  const fnExpr = path[0];
+  ensureArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_ARROW_FUNCTION");
+  return fnExpr.get("body").node;
 }
 
 
@@ -124,17 +127,14 @@ function parseMapParams(path) {
 
 function parseSlice(path) {
   return path.isCallExpression() && path.node.callee.property.name === "slice" ?
-    expressions.all(
-      [
-        () => parseQueryables(path.get("callee").get("object")),
-        () => parseSliceParams(path.get("arguments"))
-      ],
-      ([query, slicing]) => queryable.slice(query, slicing)
+    expressions.single(
+      () => parseQueryables(path.get("callee").get("object")),
+      query => queryable.slice(query, getSliceArgs(path.get("arguments")))
     ) :
     undefined;
 }
 
-function parseSliceParams() {
+function getSliceArgs() {
 
 }
 
@@ -145,18 +145,15 @@ function parseSliceParams() {
 
 function parseSort(path) {
   return path.isCallExpression() && path.node.callee.property.name === "sort" ?
-    expressions.all(
-      [
-        () => parseQueryables(path.get("callee").get("object")),
-        () => parseSortParams(path.get("arguments"))
-      ],
-      ([query, sorting]) => queryable.sort(query, sorting)
+    expressions.single(
+      () => parseQueryables(path.get("callee").get("object")),
+      query => queryable.sort(query, getSortArgs(path.get("arguments")))
     ) :
     undefined;
 }
 
 
-function parseSortParams(path) {
+function getSortArgs(path) {
 
 }
 
