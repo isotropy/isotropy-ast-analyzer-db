@@ -71,11 +71,23 @@ function ensureArrowFunction(path, errorCode) {
   Function must have a single parameter.
 */
 
-function ensureSingleParam(path, errorCode) {
+function ensureFunctionHasOneArg(path, errorCode) {
   if (path.length !== 1) {
     throw new Error(errorCode, `Function must have a single parameter. Found ${path.get("params").node.length} instead.`)
   }
 }
+
+
+/*
+  Function must have a two parameters.
+*/
+
+function ensureFunctionHasTwoArgs(path, errorCode) {
+  if (path.length !== 2) {
+    throw new Error(errorCode, `Function must have two parameters. Found ${path.get("params").node.length} instead.`)
+  }
+}
+
 
 /*
   db.todos.filter(...)
@@ -92,7 +104,6 @@ function parseFilter(path) {
 
 
 function getFilterArgs(path) {
-  ensureSingleParam(path, "PARSER_DB_FILTER_ARG_COUNT");
   const fnExpr = path[0];
   ensureArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_ARROW_FUNCTION");
   return fnExpr.get("body").node;
@@ -114,7 +125,6 @@ function parseMap(path) {
 
 
 function getMapArgs(path) {
-  ensureSingleParam(path, "PARSER_DB_MAP_ARG_COUNT");
   const fnExpr = path[0];
   ensureArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_ARROW_FUNCTION");
   return fnExpr.get("body").node;
@@ -134,13 +144,18 @@ function parseSlice(path) {
     undefined;
 }
 
-function getSliceArgs() {
-
+function getSliceArgs(path) {
+  return {
+    from: path[0].node.value,
+    to: path[1].node.value,
+  };
 }
 
 
 /*
-  db.todos.filter(...).sort(...)
+  db.todos.filter(...).sort((x, y) => x.)
+  We only support utterly simple, single-field sorts.
+  Can sort only by one column for now.
 */
 
 function parseSort(path) {
@@ -154,7 +169,35 @@ function parseSort(path) {
 
 
 function getSortArgs(path) {
+  const fnExpr = path[0];
+  ensureArrowFunction(fnExpr, "PARSER_DB_SORT_ARG_SHOULD_BE_ARROW_FUNCTION");
+  const firstParam = path[0].get("params")[0].node.name;
+  const secondParam = path[0].get("params")[1].node.name;
+  const left = path[0].get("body").get("left");
+  const right = path[0].get("body").get("right");
 
+  const operator = path[0].get("body").get("operator").node;
+  if (![">", ">=", "<", "<="].includes(operator)) {
+    throw new Error("PARSER_DB_SORT_OPERATOR_SHOULD_BE_GT_OR_LT", "The sort function should use the greater than or less than operator.");
+  }
+
+  if (
+    !left.isMemberExpression() ||
+    !right.isMemberExpression() ||
+    |left.get("object").isIdentifier() ||
+    !right.get("object").isIdentifier() ||
+    !left.get("property").isIdentifier() ||
+    !right.get("property").isIdentifier()
+  ) {
+    throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_BE_SIMPLE", "The sort function should use a simple expression.");
+  }
+
+  const leftField = left.get("property").name;
+  const rightField = right.get("property").name;
+
+  return {
+
+  }
 }
 
 
