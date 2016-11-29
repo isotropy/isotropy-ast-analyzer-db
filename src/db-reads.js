@@ -153,9 +153,12 @@ function getSliceArgs(path) {
 
 
 /*
-  db.todos.filter(...).sort((x, y) => x.)
+  db.todos.filter(...).sort((x, y) => x.f1 > y.f1)
   We only support utterly simple, single-field sorts.
   Can sort only by one column for now.
+
+  Eventually, we can support multiple sort fields with
+  db.todos.sort((x, y) => x.f1 > y.f1 || (x.f1 === y.f1 && x.f2 > y.f2))
 */
 
 function parseSort(path) {
@@ -184,7 +187,7 @@ function getSortArgs(path) {
   if (
     !left.isMemberExpression() ||
     !right.isMemberExpression() ||
-    |left.get("object").isIdentifier() ||
+    !left.get("object").isIdentifier() ||
     !right.get("object").isIdentifier() ||
     !left.get("property").isIdentifier() ||
     !right.get("property").isIdentifier()
@@ -192,12 +195,22 @@ function getSortArgs(path) {
     throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_BE_SIMPLE", "The sort function should use a simple expression.");
   }
 
-  const leftField = left.get("property").name;
-  const rightField = right.get("property").name;
+  const leftField = left.get("property").node.name;
+  const rightField = right.get("property").node.name;
 
-  return {
-
+  if (leftField !== rightField) {
+    throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_HAVE_THE_SAME_FIELD", "The sort expression should use the same field.")
   }
+
+  const leftObject = left.get("object").node.name;
+  const rightObject = right.get("object").node.name;
+
+  return [
+    {
+      field: leftField,
+      ascending: (operator === ">" && firstParam === leftObject) || (operator === "<" && firstParam === rightObject)
+    }
+  ]
 }
 
 

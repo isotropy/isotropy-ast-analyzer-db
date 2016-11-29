@@ -2,22 +2,23 @@ export function create(name) {
   return { name };
 }
 
-export function filter(queryable, args) {
-  return queryable;
+export function filter(query, expr) {
+  return query;
 }
 
-export function map(queryable, args) {
-  return queryable;
+export function map(query, args) {
+  return query;
 }
 
-export function slice(queryable, args) {
-  return queryable;
+export function slice(query, args) {
+  return query;
 }
 
-export function sort(queryable, args) {
-  return queryable;
+export function sort(query, args) {
+  return query;
 }
 
-export function length(queryable, args) {
-  return queryable;
+export function length(query) {
+  query.eof = true;
+  query.op = "length";
 }
