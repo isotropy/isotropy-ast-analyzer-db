@@ -90,14 +90,36 @@ function ensureFunctionHasTwoArgs(path, errorCode) {
 
 
 /*
+  Check if a method call exists in the call chain.
+*/
+function methodExistsInTree(path, methodName) {
+  return path.isCallExpression() && path.node.callee.property.name === methodName ||
+    path.parent.isCallExpression() ? methodExistsInTree(path.parent, methodName) : false;
+}
+
+/*
   db.todos.filter(...)
 */
 
 function parseFilter(path) {
   return path.isCallExpression() && path.node.callee.property.name === "filter" ?
-    expressions.single(
-      () => parseQueryables(path.get("callee").get("object")),
-      query => queryable.filter(query, getFilterArgs(path.get("arguments")))
+    expressions.any(
+      [
+        () => parseCollection(path.get("callee").get("object")),
+        () => parseFilter(path.get("callee").get("object")),
+        () => parseSort(path.get("callee").get("object")),
+      ],
+      query => queryable.filter(query, getFilterArgs(path.get("arguments"))),
+      [
+        [
+          () => methodExistsInTree(path.parent, "map"),
+          ["PARSER_DB_MAP_CANNOT_PRECEDE_FILTER", "A map() function must not precede the filter() function. Try reordering."]
+        ],
+        [
+          () => methodExistsInTree(path.parent, "slice"),
+          ["PARSER_DB_SLICE_CANNOT_PRECEDE_FILTER", "A slice() function must not precede the filter() function. Try reordering."]
+        ],
+      ]
     ) :
     undefined;
 }
@@ -105,7 +127,7 @@ function parseFilter(path) {
 
 function getFilterArgs(path) {
   const fnExpr = path[0];
-  ensureArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_ARROW_FUNCTION");
+  ensureArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
   return fnExpr.get("body").node;
 }
 
@@ -116,9 +138,20 @@ function getFilterArgs(path) {
 
 function parseMap(path) {
   return path.isCallExpression() && path.node.callee.property.name === "map" ?
-    expressions.single(
-      () => parseQueryables(path.get("callee").get("object")),
-      query => queryable.map(query, getMapArgs(path.get("arguments")))
+    expressions.any(
+      [
+        () => parseCollection(path.get("callee").get("object")),
+        () => parseFilter(path.get("callee").get("object")),
+        () => parseSort(path.get("callee").get("object")),
+        () => parseSlice(path.get("callee").get("object")),
+      ],
+      query => queryable.map(query, getMapArgs(path.get("arguments"))),
+      [
+        [
+          () => methodExistsInTree(path.parent, "map"),
+          ["PARSER_DB_MULTIPLE_MAP_CALLS", "A map() function must not preceded by another map(). Try merging them."]
+        ],
+      ]
     ) :
     undefined;
 }
@@ -126,8 +159,29 @@ function parseMap(path) {
 
 function getMapArgs(path) {
   const fnExpr = path[0];
-  ensureArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_ARROW_FUNCTION");
-  return fnExpr.get("body").node;
+  ensureArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
+  const paramName = fnExpr.get("params")[0].get("name");
+
+  const body = fnExpr.get("body");
+  if (
+    !body.isObjectExpression() ||
+    body.get("properties").some(p =>
+      !p.isObjectProperty() ||
+      !p.get("value").isMemberExpression() ||
+      !p.get("value").get("property").isIdentifier() ||
+      !p.get("value").get("object").isIdentifier() ||
+      p.get("value").get("object").get("name") !== paramName
+    )
+  ) {
+    throw new Error("PARSER_DB_MAP_EXPRESSION_SHOULD_RETURN_AN_OBJECT", "The map expression should return an object.");
+  }
+
+  return body
+    .get("properties")
+    .map(p => [
+      p.get("key").get("name"),
+      p.get("value").get("property").get("name")
+    ]);
 }
 
 
@@ -137,9 +191,20 @@ function getMapArgs(path) {
 
 function parseSlice(path) {
   return path.isCallExpression() && path.node.callee.property.name === "slice" ?
-    expressions.single(
-      () => parseQueryables(path.get("callee").get("object")),
-      query => queryable.slice(query, getSliceArgs(path.get("arguments")))
+    expressions.any(
+      [
+        () => parseCollection(path.get("callee").get("object")),
+        () => parseFilter(path.get("callee").get("object")),
+        () => parseSort(path.get("callee").get("object")),
+        () => parseMap(path.get("callee").get("object")),
+      ],
+      query => queryable.slice(query, getSliceArgs(path.get("arguments"))),
+      [
+        [
+          () => methodExistsInTree(path.parent, "slice"),
+          ["PARSER_DB_MULTIPLE_SLICE_CALLS", "A slice() function must not preceded by another slice()."]
+        ]
+      ]
     ) :
     undefined;
 }
@@ -163,9 +228,22 @@ function getSliceArgs(path) {
 
 function parseSort(path) {
   return path.isCallExpression() && path.node.callee.property.name === "sort" ?
-    expressions.single(
-      () => parseQueryables(path.get("callee").get("object")),
-      query => queryable.sort(query, getSortArgs(path.get("arguments")))
+    expressions.any(
+      [
+        () => parseCollection(path.get("callee").get("object")),
+        () => parseFilter(path.get("callee").get("object")),
+      ],
+      query => queryable.sort(query, getSortArgs(path.get("arguments"))),
+      [
+        [
+          () => methodExistsInTree(path.parent, "map"),
+          ["PARSER_DB_MAP_CANNOT_PRECEDE_SORT", "A map() function must not precede the sort() function. Try reordering."]
+        ],
+        [
+          () => methodExistsInTree(path.parent, "slice"),
+          ["PARSER_DB_SLICE_CANNOT_PRECEDE_SORT", "A slice() function must not precede the sort() function. Try reordering."]
+        ],
+      ]
     ) :
     undefined;
 }
@@ -192,7 +270,7 @@ function getSortArgs(path) {
     !left.get("property").isIdentifier() ||
     !right.get("property").isIdentifier()
   ) {
-    throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_BE_SIMPLE", "The sort function should use a simple expression.");
+    throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_BE_SIMPLE", "The sort expression should be a simple predicate comparing a single field (as of now).");
   }
 
   const leftField = left.get("property").node.name;

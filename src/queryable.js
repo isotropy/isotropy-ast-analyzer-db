@@ -1,9 +1,9 @@
 export function create(name) {
-  return { name };
+  return [{ type: "root", name }];
 }
 
-export function filter(query, expr) {
-  return query;
+export function filter(query, expression) {
+  return query.concat({ type: "filter", expression });
 }
 
 export function map(query, args) {
