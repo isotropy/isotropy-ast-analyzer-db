@@ -94,7 +94,7 @@ function ensureFunctionHasTwoArgs(path, errorCode) {
 */
 function methodExistsInTree(path, methodName) {
   return path.isCallExpression() && path.node.callee.property.name === methodName ||
-    path.parent.isCallExpression() ? methodExistsInTree(path.parent, methodName) : false;
+    path.parentPath.isCallExpression() ? methodExistsInTree(path.parentPath, methodName) : false;
 }
 
 /*
@@ -112,11 +112,11 @@ function parseFilter(path) {
       query => queryable.filter(query, getFilterArgs(path.get("arguments"))),
       [
         [
-          () => methodExistsInTree(path.parent, "map"),
+          () => methodExistsInTree(path.parentPath, "map"),
           ["PARSER_DB_MAP_CANNOT_PRECEDE_FILTER", "A map() function must not precede the filter() function. Try reordering."]
         ],
         [
-          () => methodExistsInTree(path.parent, "slice"),
+          () => methodExistsInTree(path.parentPath, "slice"),
           ["PARSER_DB_SLICE_CANNOT_PRECEDE_FILTER", "A slice() function must not precede the filter() function. Try reordering."]
         ],
       ]
@@ -148,7 +148,7 @@ function parseMap(path) {
       query => queryable.map(query, getMapArgs(path.get("arguments"))),
       [
         [
-          () => methodExistsInTree(path.parent, "map"),
+          () => methodExistsInTree(path.parentPath, "map"),
           ["PARSER_DB_MULTIPLE_MAP_CALLS", "A map() function must not preceded by another map(). Try merging them."]
         ],
       ]
@@ -201,7 +201,7 @@ function parseSlice(path) {
       query => queryable.slice(query, getSliceArgs(path.get("arguments"))),
       [
         [
-          () => methodExistsInTree(path.parent, "slice"),
+          () => methodExistsInTree(path.parentPath, "slice"),
           ["PARSER_DB_MULTIPLE_SLICE_CALLS", "A slice() function must not preceded by another slice()."]
         ]
       ]
@@ -236,11 +236,11 @@ function parseSort(path) {
       query => queryable.sort(query, getSortArgs(path.get("arguments"))),
       [
         [
-          () => methodExistsInTree(path.parent, "map"),
+          () => methodExistsInTree(path.parentPath, "map"),
           ["PARSER_DB_MAP_CANNOT_PRECEDE_SORT", "A map() function must not precede the sort() function. Try reordering."]
         ],
         [
-          () => methodExistsInTree(path.parent, "slice"),
+          () => methodExistsInTree(path.parentPath, "slice"),
           ["PARSER_DB_SLICE_CANNOT_PRECEDE_SORT", "A slice() function must not precede the sort() function. Try reordering."]
         ],
       ]
