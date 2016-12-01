@@ -40,7 +40,7 @@ export function single(expression, then, preconditions = []) {
 
 export function any(expressions, then, preconditions = []) {
   checkPreconditions(preconditions);
-  
+
   for (const expr of expressions) {
     const result = expr();
     if (typeof result !== "undefined") {
@@ -55,7 +55,7 @@ export function any(expressions, then, preconditions = []) {
   Check conditions and throw if needed
 */
 function checkPreconditions(preconditions) {
-  if (preconditions.length) {
+  if (preconditions && preconditions.length) {
     for (const [predicate, [code, message]] of preconditions) {
       if (predicate()) {
         throw new Error(code, message);

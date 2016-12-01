@@ -2,18 +2,21 @@
 import * as dbReads from "./db-reads";
 import * as dbWrites from "./db-writes";
 
-function parse(path, parsers) {
-  for (const parser of parsers) {
-    const result = parser(path);
-    if (result) {
-      return path.replaceWith(result.path);
+/*
+
+*/
+export default function(fnRewriter, config) {
+
+  function parse(path, parsers) {
+    for (const parser of parsers) {
+      const result = parser(path, config);
+      if (result) {
+        return fnRewriter(path, result);        
+      }
     }
+    path.skip();
   }
-  path.skip();
-}
 
-
-export default function () {
   return {
     visitor: {
 

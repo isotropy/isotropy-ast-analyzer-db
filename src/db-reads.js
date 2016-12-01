@@ -12,9 +12,9 @@ import Error from "isotropy-error";
     selects, count, map etc.
 */
 
-function parseCollection(path) {
+function parseCollection(path, config) {
   //db.todos...
-  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === "db" ?
+  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier ?
     queryable.create(path.node.property.name) :
     undefined;
 }
@@ -30,14 +30,14 @@ function parseCollection(path) {
   //db.todos.sort()
 */
 
-export function parseQueryables(path, then) {
+export function parseQueryables(path, config, then) {
   return expressions.any(
     [
-      () => parseCollection(path),
-      () => parseFilter(path),
-      () => parseMap(path),
-      () => parseSlice(path),
-      () => parseSort(path)
+      () => parseCollection(path, config),
+      () => parseFilter(path, config),
+      () => parseMap(path, config),
+      () => parseSlice(path, config),
+      () => parseSort(path, config)
     ],
     then
   );
@@ -50,9 +50,9 @@ export function parseQueryables(path, then) {
   No more chanining is possible.
 */
 
-export function parsePostQueryables(path, then) {
+export function parsePostQueryables(path, config, then) {
   return expressions.single(
-    () => parseLength(path),
+    () => parseLength(path, config),
     then
   )
 }
@@ -101,15 +101,15 @@ function methodExistsInTree(path, methodName) {
   db.todos.filter(...)
 */
 
-function parseFilter(path) {
+function parseFilter(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "filter" ?
     expressions.any(
       [
-        () => parseCollection(path.get("callee").get("object")),
-        () => parseFilter(path.get("callee").get("object")),
-        () => parseSort(path.get("callee").get("object")),
+        () => parseCollection(path.get("callee").get("object"), config),
+        () => parseFilter(path.get("callee").get("object"), config),
+        () => parseSort(path.get("callee").get("object"), config),
       ],
-      query => queryable.filter(query, getFilterArgs(path.get("arguments"))),
+      query => queryable.filter(query, getFilterArgs(path.get("arguments"), config)),
       [
         [
           () => methodExistsInTree(path.parentPath, "map"),
@@ -125,7 +125,7 @@ function parseFilter(path) {
 }
 
 
-function getFilterArgs(path) {
+function getFilterArgs(path, config) {
   const fnExpr = path[0];
   ensureArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
   return fnExpr.get("body").node;
@@ -136,20 +136,20 @@ function getFilterArgs(path) {
   db.todos.map(...)
 */
 
-function parseMap(path) {
+function parseMap(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "map" ?
     expressions.any(
       [
-        () => parseCollection(path.get("callee").get("object")),
-        () => parseFilter(path.get("callee").get("object")),
-        () => parseSort(path.get("callee").get("object")),
-        () => parseSlice(path.get("callee").get("object")),
+        () => parseCollection(path.get("callee").get("object"), config),
+        () => parseFilter(path.get("callee").get("object"), config),
+        () => parseSort(path.get("callee").get("object"), config),
+        () => parseSlice(path.get("callee").get("object"), config),
       ],
-      query => queryable.map(query, getMapArgs(path.get("arguments"))),
+      query => queryable.map(query, getMapArgs(path.get("arguments"), config)),
       [
         [
           () => methodExistsInTree(path.parentPath, "map"),
-          ["PARSER_DB_MULTIPLE_MAP_CALLS", "A map() function must not preceded by another map(). Try merging them."]
+          ["PARSER_DB_MULTIPLE_MAP_CALLS", "A map() function must not be preceded by another map(). Try merging them."]
         ],
       ]
     ) :
@@ -157,7 +157,7 @@ function parseMap(path) {
 }
 
 
-function getMapArgs(path) {
+function getMapArgs(path, config) {
   const fnExpr = path[0];
   ensureArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
   const paramName = fnExpr.get("params")[0].get("name");
@@ -189,27 +189,27 @@ function getMapArgs(path) {
   db.todos.filter(...).slice(...)
 */
 
-function parseSlice(path) {
+function parseSlice(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "slice" ?
     expressions.any(
       [
-        () => parseCollection(path.get("callee").get("object")),
-        () => parseFilter(path.get("callee").get("object")),
-        () => parseSort(path.get("callee").get("object")),
-        () => parseMap(path.get("callee").get("object")),
+        () => parseCollection(path.get("callee").get("object"), config),
+        () => parseFilter(path.get("callee").get("object"), config),
+        () => parseSort(path.get("callee").get("object"), config),
+        () => parseMap(path.get("callee").get("object"), config),
       ],
-      query => queryable.slice(query, getSliceArgs(path.get("arguments"))),
+      query => queryable.slice(query, getSliceArgs(path.get("arguments"), config)),
       [
         [
           () => methodExistsInTree(path.parentPath, "slice"),
-          ["PARSER_DB_MULTIPLE_SLICE_CALLS", "A slice() function must not preceded by another slice()."]
+          ["PARSER_DB_MULTIPLE_SLICE_CALLS", "A slice() function must not be preceded by another slice()."]
         ]
       ]
     ) :
     undefined;
 }
 
-function getSliceArgs(path) {
+function getSliceArgs(path, config) {
   return {
     from: path[0].node.value,
     to: path[1].node.value,
@@ -226,12 +226,12 @@ function getSliceArgs(path) {
   db.todos.sort((x, y) => x.f1 > y.f1 || (x.f1 === y.f1 && x.f2 > y.f2))
 */
 
-function parseSort(path) {
+function parseSort(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "sort" ?
     expressions.any(
       [
-        () => parseCollection(path.get("callee").get("object")),
-        () => parseFilter(path.get("callee").get("object")),
+        () => parseCollection(path.get("callee").get("object"), config),
+        () => parseFilter(path.get("callee").get("object"), config),
       ],
       query => queryable.sort(query, getSortArgs(path.get("arguments"))),
       [
@@ -249,7 +249,7 @@ function parseSort(path) {
 }
 
 
-function getSortArgs(path) {
+function getSortArgs(path, config) {
   const fnExpr = path[0];
   ensureArrowFunction(fnExpr, "PARSER_DB_SORT_ARG_SHOULD_BE_ARROW_FUNCTION");
   const firstParam = path[0].get("params")[0].node.name;
@@ -296,8 +296,8 @@ function getSortArgs(path) {
   db.todos.filter(...).length
 */
 
-function parseLength(path) {
+function parseLength(path, config) {
   return path.isMemberExpression() && path.get("property").isIdentifier() && path.node.property.name === "length" ?
-    parseQueryables(path.get("object"), query => queryable.length(query)) :
+    parseQueryables(path.get("object"), config, query => queryable.length(query)) :
     undefined;
 }
