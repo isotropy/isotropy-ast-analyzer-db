@@ -14,7 +14,7 @@ export function all(expressions, then, preconditions = []) {
     if (typeof result !== "undefined") {
       results.push(result);
     } else {
-      return then && then();
+      return undefined;
     }
   }
 
@@ -30,7 +30,9 @@ export function single(expression, then, preconditions = []) {
   checkPreconditions(preconditions);
 
   const result = expression();
-  return then && then(result);
+  return result ?
+    then ? then(result) : undefined :
+    undefined;
 }
 
 
@@ -48,18 +50,16 @@ export function any(expressions, then, preconditions = []) {
     }
   }
 
-  return then && then();
+  return undefined;
 }
 
 /*
-  Check conditions and throw if needed
+  Check preconditions; they throw if there is an error.
 */
 function checkPreconditions(preconditions) {
   if (preconditions && preconditions.length) {
-    for (const [predicate, [code, message]] of preconditions) {
-      if (predicate()) {
-        throw new Error(code, message);
-      }
+    for (const precondition of preconditions) {
+      precondition();
     }
   }
 }

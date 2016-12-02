@@ -5,6 +5,7 @@ import util from "util";
 import * as expressions from "./parser-expressions";
 import * as queryable from "./queryable";
 import Error from "isotropy-error";
+import { assertArrowFunction, assertMethodIsNotInTree } from "./ast-asserts";
 
 /*
   The read visitor handles operations where we don't mutate the db collection.
@@ -58,46 +59,6 @@ export function parsePostQueryables(path, config, then) {
 }
 
 /*
-  Must pass an arrow function.
-*/
-
-function ensureArrowFunction(path, errorCode) {
-  if (!path.isArrowFunctionExpression()) {
-    throw new Error(errorCode, `Must pass an arrow function. Found ${path.node.type} instead.`)
-  }
-}
-
-/*
-  Function must have a single parameter.
-*/
-
-function ensureFunctionHasOneArg(path, errorCode) {
-  if (path.length !== 1) {
-    throw new Error(errorCode, `Function must have a single parameter. Found ${path.get("params").node.length} instead.`)
-  }
-}
-
-
-/*
-  Function must have a two parameters.
-*/
-
-function ensureFunctionHasTwoArgs(path, errorCode) {
-  if (path.length !== 2) {
-    throw new Error(errorCode, `Function must have two parameters. Found ${path.get("params").node.length} instead.`)
-  }
-}
-
-
-/*
-  Check if a method call exists in the call chain.
-*/
-function methodExistsInTree(path, methodName) {
-  return path.isCallExpression() && path.node.callee.property.name === methodName ||
-    path.parentPath.isCallExpression() ? methodExistsInTree(path.parentPath, methodName) : false;
-}
-
-/*
   db.todos.filter(...)
 */
 
@@ -111,14 +72,18 @@ function parseFilter(path, config) {
       ],
       query => queryable.filter(query, getFilterArgs(path.get("arguments"), config)),
       [
-        [
-          () => methodExistsInTree(path.parentPath, "map"),
-          ["PARSER_DB_MAP_CANNOT_PRECEDE_FILTER", "A map() function must not precede the filter() function. Try reordering."]
-        ],
-        [
-          () => methodExistsInTree(path.parentPath, "slice"),
-          ["PARSER_DB_SLICE_CANNOT_PRECEDE_FILTER", "A slice() function must not precede the filter() function. Try reordering."]
-        ],
+        assertMethodIsNotInTree(
+          path.parentPath,
+          "map",
+          "PARSER_DB_MAP_CANNOT_PRECEDE_FILTER",
+          "A map() function must not precede the filter() function. Try reordering."
+        ),
+        assertMethodIsNotInTree(
+          path.parentPath,
+          "slice",
+          "PARSER_DB_SLICE_CANNOT_PRECEDE_FILTER",
+          "A slice() function must not precede the filter() function. Try reordering."
+        ),
       ]
     ) :
     undefined;
@@ -127,7 +92,7 @@ function parseFilter(path, config) {
 
 function getFilterArgs(path, config) {
   const fnExpr = path[0];
-  ensureArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
+  assertArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
   return fnExpr.get("body").node;
 }
 
@@ -147,10 +112,12 @@ function parseMap(path, config) {
       ],
       query => queryable.map(query, getMapArgs(path.get("arguments"), config)),
       [
-        [
-          () => methodExistsInTree(path.parentPath, "map"),
-          ["PARSER_DB_MULTIPLE_MAP_CALLS", "A map() function must not be preceded by another map(). Try merging them."]
-        ],
+        assertMethodIsNotInTree(
+          path.parentPath,
+          "map",
+          "PARSER_DB_MULTIPLE_MAP_CALLS",
+          "A map() function must not be preceded by another map(). Try merging them."
+        ),
       ]
     ) :
     undefined;
@@ -159,7 +126,7 @@ function parseMap(path, config) {
 
 function getMapArgs(path, config) {
   const fnExpr = path[0];
-  ensureArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
+  assertArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
   const paramName = fnExpr.get("params")[0].get("name");
 
   const body = fnExpr.get("body");
@@ -200,10 +167,12 @@ function parseSlice(path, config) {
       ],
       query => queryable.slice(query, getSliceArgs(path.get("arguments"), config)),
       [
-        [
-          () => methodExistsInTree(path.parentPath, "slice"),
-          ["PARSER_DB_MULTIPLE_SLICE_CALLS", "A slice() function must not be preceded by another slice()."]
-        ]
+        assertMethodIsNotInTree(
+          path.parentPath,
+          "slice",
+          "PARSER_DB_MULTIPLE_SLICE_CALLS",
+          "A slice() function must not be preceded by another slice()."
+        )
       ]
     ) :
     undefined;
@@ -235,14 +204,18 @@ function parseSort(path, config) {
       ],
       query => queryable.sort(query, getSortArgs(path.get("arguments"))),
       [
-        [
-          () => methodExistsInTree(path.parentPath, "map"),
-          ["PARSER_DB_MAP_CANNOT_PRECEDE_SORT", "A map() function must not precede the sort() function. Try reordering."]
-        ],
-        [
-          () => methodExistsInTree(path.parentPath, "slice"),
-          ["PARSER_DB_SLICE_CANNOT_PRECEDE_SORT", "A slice() function must not precede the sort() function. Try reordering."]
-        ],
+        assertMethodIsNotInTree(
+          path.parentPath,
+          "map",
+          "PARSER_DB_MAP_CANNOT_PRECEDE_SORT",
+          "A map() function must not precede the sort() function. Try reordering."
+        ),
+        assertMethodIsNotInTree(
+          path.parentPath,
+          "slice",
+          "PARSER_DB_SLICE_CANNOT_PRECEDE_SORT",
+          "A slice() function must not precede the sort() function. Try reordering."
+        ),
       ]
     ) :
     undefined;
@@ -251,7 +224,7 @@ function parseSort(path, config) {
 
 function getSortArgs(path, config) {
   const fnExpr = path[0];
-  ensureArrowFunction(fnExpr, "PARSER_DB_SORT_ARG_SHOULD_BE_ARROW_FUNCTION");
+  assertArrowFunction(fnExpr, "PARSER_DB_SORT_ARG_SHOULD_BE_ARROW_FUNCTION");
   const firstParam = path[0].get("params")[0].node.name;
   const secondParam = path[0].get("params")[1].node.name;
   const left = path[0].get("body").get("left");

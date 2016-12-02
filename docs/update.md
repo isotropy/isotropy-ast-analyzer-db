@@ -1,9 +1,7 @@
 Update a record
 ```javascript
 async function updateTodo(assignee, newAssignee) {
-  db.todos = db.todos.map(todo =>
-    todo === db.todos.find(todo => todo.assignee === assignee) ? { assignee: newAssignee, ...todo } : todo
-  );
+  db.todos = db.todos.map(todo => todo.assignee === assignee ? { assignee: newAssignee, ...todo } : todo)
 }
 ```
 

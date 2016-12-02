@@ -1,9 +1,7 @@
 Delete a record
 ```javascript
 async function deleteTodo(title, assignee) {
-  db.todos = db.todos.filter(todo =>
-    todo !== db.todos.find(todo => todo.assignee == assignee && todo.title === title)
-  );
+  db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
 }
 ```
 
