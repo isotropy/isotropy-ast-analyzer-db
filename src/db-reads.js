@@ -127,20 +127,20 @@ function parseMap(path, config) {
 function getMapArgs(path, config) {
   const fnExpr = path[0];
   assertArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
-  const paramName = fnExpr.get("params")[0].get("name");
 
   const body = fnExpr.get("body");
-  if (
-    !body.isObjectExpression() ||
-    body.get("properties").some(p =>
-      !p.isObjectProperty() ||
-      !p.get("value").isMemberExpression() ||
-      !p.get("value").get("property").isIdentifier() ||
-      !p.get("value").get("object").isIdentifier() ||
-      p.get("value").get("object").get("name") !== paramName
-    )
-  ) {
+  if (!body.isObjectExpression()) {
     throw new Error("PARSER_DB_MAP_EXPRESSION_SHOULD_RETURN_AN_OBJECT", "The map expression should return an object.");
+  }
+
+  const paramName = fnExpr.get("params")[0].get("name");
+  for (const prop in body.get("properties")) {
+    assertMemberExpressionUsingParameter(
+      prop.get("value"),
+      paramName,
+      "PARSER_DB_MAP_EXPRESSION_SHOULD_REFERENCE_PARAMETER_FIELDS",
+      "The map expression should return an object expression that references fields on the parameter."
+    );
   }
 
   return body
@@ -225,8 +225,10 @@ function parseSort(path, config) {
 function getSortArgs(path, config) {
   const fnExpr = path[0];
   assertArrowFunction(fnExpr, "PARSER_DB_SORT_ARG_SHOULD_BE_ARROW_FUNCTION");
+
   const firstParam = path[0].get("params")[0].node.name;
   const secondParam = path[0].get("params")[1].node.name;
+
   const left = path[0].get("body").get("left");
   const right = path[0].get("body").get("right");
 
@@ -255,6 +257,11 @@ function getSortArgs(path, config) {
 
   const leftObject = left.get("object").node.name;
   const rightObject = right.get("object").node.name;
+
+  const areBothParamsReferenced = [firstParam, secondParam].every(i => [leftObject, rightObject].includes(i));
+  if (!areBothParamsReferenced) {
+    throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_REFERENCE_BOTH_PARAMETERS", "The sort expression should reference both parameters in the arrow function.")
+  }
 
   return [
     {

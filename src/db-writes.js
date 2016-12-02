@@ -29,7 +29,9 @@ function parseUpdate(path, config) {
         `The update() method must use a conditional expression. Found ${path.get("body").node.type} instead.`
       );
     }
+
     const firstParam = path[0].get("params")[0].node.name;
+
     //...
 
   } else {

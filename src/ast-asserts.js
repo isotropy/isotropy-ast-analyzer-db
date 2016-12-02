@@ -12,7 +12,7 @@ function assertArrowFunction(path, errorCode) {
   Function must have a single parameter.
 */
 
-function assertFunctionHasOneArg(path, errorCode) {
+function assertUnaryFunction(path, errorCode) {
   if (path.length !== 1) {
     throw new Error(errorCode, `Function must have a single parameter. Found ${path.get("params").node.length} instead.`)
   }
@@ -23,7 +23,7 @@ function assertFunctionHasOneArg(path, errorCode) {
   Function must have a two parameters.
 */
 
-function assertFunctionHasTwoArgs(path, errorCode) {
+function assertBinaryFunction(path, errorCode) {
   if (path.length !== 2) {
     throw new Error(errorCode, `Function must have two parameters. Found ${path.get("params").node.length} instead.`)
   }
@@ -40,5 +40,20 @@ function assertMethodIsNotInTree(path, methodName, errorCode, errorMessage) {
 
   if (path.parentPath.isCallExpression()) {
     assertMethodIsNotInTree(path.parentPath, methodName);
+  }
+}
+
+
+/*
+  Makes sure unary function parameter is exclusively used in member expression
+*/
+function assertMemberExpressionUsingParameter(expr, paramName, errorCode, errorMessage) {
+  if (
+    !expr.isMemberExpression() ||
+    !expr.get("property").isIdentifier() ||
+    !expr.get("object").isIdentifier() ||
+    expr.get("object").get("name") !== paramName
+  ) {
+    throw new Error(errorCode, errorMessage);
   }
 }
