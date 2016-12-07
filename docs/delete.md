@@ -56,87 +56,48 @@ async function deleteTodo(title, assignee) {
             }
           },
           "body": {
-            "type": "BinaryExpression",
-            "left": {
-              "type": "Identifier",
-              "name": "todo"
-            },
-            "operator": "!==",
-            "right": {
-              "type": "CallExpression",
-              "callee": {
-                "type": "MemberExpression",
-                "object": {
+            "type": "UnaryExpression",
+            "operator": "!",
+            "prefix": true,
+            "argument": {
+              "type": "LogicalExpression",
+              "left": {
+                "type": "BinaryExpression",
+                "left": {
                   "type": "MemberExpression",
                   "object": {
                     "type": "Identifier",
-                    "name": "db"
+                    "name": "todo"
                   },
                   "property": {
                     "type": "Identifier",
-                    "name": "todos"
+                    "name": "assignee"
                   }
                 },
-                "property": {
+                "operator": "===",
+                "right": {
                   "type": "Identifier",
-                  "name": "find"
+                  "name": "assignee"
                 }
               },
-              "arguments": {
-                "0": {
-                  "type": "ArrowFunctionExpression",
-                  "id": {},
-                  "generator": false,
-                  "expression": true,
-                  "async": false,
-                  "params": {
-                    "0": {
-                      "type": "Identifier",
-                      "name": "todo"
-                    }
+              "operator": "&&",
+              "right": {
+                "type": "BinaryExpression",
+                "left": {
+                  "type": "MemberExpression",
+                  "object": {
+                    "type": "Identifier",
+                    "name": "todo"
                   },
-                  "body": {
-                    "type": "LogicalExpression",
-                    "left": {
-                      "type": "BinaryExpression",
-                      "left": {
-                        "type": "MemberExpression",
-                        "object": {
-                          "type": "Identifier",
-                          "name": "todo"
-                        },
-                        "property": {
-                          "type": "Identifier",
-                          "name": "assignee"
-                        }
-                      },
-                      "operator": "==",
-                      "right": {
-                        "type": "Identifier",
-                        "name": "assignee"
-                      }
-                    },
-                    "operator": "&&",
-                    "right": {
-                      "type": "BinaryExpression",
-                      "left": {
-                        "type": "MemberExpression",
-                        "object": {
-                          "type": "Identifier",
-                          "name": "todo"
-                        },
-                        "property": {
-                          "type": "Identifier",
-                          "name": "title"
-                        }
-                      },
-                      "operator": "===",
-                      "right": {
-                        "type": "Identifier",
-                        "name": "title"
-                      }
-                    }
+                  "property": {
+                    "type": "Identifier",
+                    "name": "title"
                   }
+                },
+                "operator": "===",
+                "right": {
+                  "type": "Identifier",
+                  "name": "title"
                 }
               }
             }
