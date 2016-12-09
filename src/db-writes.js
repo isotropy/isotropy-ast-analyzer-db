@@ -32,7 +32,23 @@ function parseUpdate(path, config) {
 
     const firstParam = path[0].get("params")[0].node.name;
 
-    //...
+    //In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item
+    // eg: db.todos = db.todos.map(todo => todo.assignee === assignee ? { assignee: newAssignee, ...todo } /* consequent */ : todo /* alternate */)
+    // The spread operator must be in the consequent
+    // Alternate must be an unmodified argument (just 'todo').
+    if (true) { //TODO
+      throw new Error(
+        "PARSER_DB_UPDATE_SHOULD_RETURN_MODIFIED_AS_CONSEQUENT",
+        `In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item.`
+      );
+    }
+
+    if (true) { //TODO
+      throw new Error(
+        "PARSER_DB_UPDATE_SHOULD_RETURN_UNMODIFIED_AS_ALTERNATE",
+        `In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item.`
+      );
+    }
 
   } else {
     return undefined;
@@ -41,7 +57,16 @@ function parseUpdate(path, config) {
 
 
 function parseDelete(path, config) {
-  return
+  //The filter expression should negate the predicate that identifies the item to be deleted.
+  // eg: db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
+  if (true) { //TODO
+    throw new Error(
+      "PARSER_DB_DELETE_SHOULD_NEGATE_PREDICATE",
+      `The filter expression should negate the predicate that identifies the item to be deleted.`
+    );
+  }
+
+  return;
 }
 
 
