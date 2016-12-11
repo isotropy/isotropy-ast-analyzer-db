@@ -64,14 +64,12 @@ export async function addTodo(title, assignee) {
   db.todos = db.todos.concat({ title, assignee });
 }
 
-export async function updateTodo(title, assignee, newTitle, newAssignee) {
-  const matchingItem = db.todos.find(todo => todo.title === title && todo.assignee === assignee);
-  db.todos = db.todos.map(todo => todo === matchingItem ? { title: newTitle, assignee: newAssignee, ...todo } : todo);
+async function updateTodo(assignee, newAssignee) {
+  db.todos = db.todos.map(todo => todo.assignee === assignee ? { assignee: newAssignee, ...todo } : todo)
 }
 
-export async function deleteTodo(deleted) {
-  const matchingItem = db.todos.find(todo => todo.title === deleted.title && todo.assignee === deleted.assignee);
-  db.todos = db.todos.filter(todo => todo !== matchingItem);
+async function deleteTodo(title, assignee) {
+  db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
 }
 ```
 
@@ -167,16 +165,14 @@ async function getTodos(who) {
 Update a record
 ```javascript
 async function updateTodo(assignee, newAssignee) {
-  const matchingItem = db.todos.find(todo => todo.assignee === assignee);
-  db.todos = db.todos.map(todo => todo === matchingItem ? { assignee: newAssignee, ...todo } : todo);
+  db.todos = db.todos.map(todo => todo.assignee === assignee ? { assignee: newAssignee, ...todo } : todo)
 }
 ```
 
 Delete a record
 ```javascript
 async function deleteTodo(title, assignee) {
-  const matchingItem = db.todos.find(todo => todo.assignee == assignee && todo.title === title);
-  db.todos = db.todos.filter(todo => todo !== matchingItem);
+  db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
 }
 ```
 

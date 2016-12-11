@@ -47,12 +47,12 @@ function assertMethodIsNotInTree(path, methodName, errorCode, errorMessage) {
 /*
   Makes sure unary function parameter is exclusively used in member expression
 */
-function assertMemberExpressionUsingParameter(expr, paramName, errorCode, errorMessage) {
+function assertMemberExpressionUsingParameter(expr, paramNames, errorCode, errorMessage) {
   if (
     !expr.isMemberExpression() ||
     !expr.get("property").isIdentifier() ||
     !expr.get("object").isIdentifier() ||
-    expr.get("object").get("name") !== paramName
+    !paramNames.includes(expr.get("object").get("name"))
   ) {
     throw new Error(errorCode, errorMessage);
   }
