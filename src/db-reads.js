@@ -63,7 +63,14 @@ export function parsePostQueryables(path, config, then) {
 */
 
 function parseFilter(path, config) {
-  return path.isCallExpression() && path.node.callee.property.name === "filter" ?
+  return new Expression()
+    .evaluateIf(() => path.isCallExpression() && path.node.callee.property.name === "filter")
+    .returns(
+      [
+
+      ]
+    )
+  return  ?
     expressions.any(
       [
         () => parseCollection(path.get("callee").get("object"), config),
@@ -102,31 +109,35 @@ function getFilterArgs(path, config) {
 */
 
 function parseMap(path, config) {
-  return path.isCallExpression() && path.node.callee.property.name === "map" ?
-    expressions.any(
+  return new Expression()
+    .evaluateIf(() => path.isCallExpression() && path.node.callee.property.name === "map")
+    .any(
       [
         () => parseCollection(path.get("callee").get("object"), config),
         () => parseFilter(path.get("callee").get("object"), config),
         () => parseSort(path.get("callee").get("object"), config),
         () => parseSlice(path.get("callee").get("object"), config),
       ],
-      query => queryable.map(query, getMapArgs(path.get("arguments"), config)),
+      query => queryable.map(query, getMapArgs(path.get("arguments"), config))
+    )
+    .throws(
       [
-        assertMethodIsNotInTree(
-          path.parentPath,
-          "map",
-          "PARSER_DB_MULTIPLE_MAP_CALLS",
-          "A map() function must not be preceded by another map(). Try merging them."
-        ),
+        [
+          () => if (isMethodNotInTree(path.parentPath, "map")),
+          `PARSER_DB_MULTIPLE_MAP_CALLS`,
+          `A map() function must not be preceded by another map(). Try merging them.`
+        ]
       ]
-    ) :
-    undefined;
+    );
 }
 
 
 function getMapArgs(path, config) {
   const fnExpr = path[0];
-  assertArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
+
+  if (!fnExpr.isArrowFunction()) {
+    throw new Error(`PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION`, `Must pass an arrow function. Found ${path.node.type} instead.`);
+  }
 
   const body = fnExpr.get("body");
   if (!body.isObjectExpression()) {
@@ -137,7 +148,7 @@ function getMapArgs(path, config) {
   for (const prop in body.get("properties")) {
     assertMemberExpressionUsingParameter(
       prop.get("value"),
-      paramName,
+      [paramName],
       "PARSER_DB_MAP_EXPRESSION_SHOULD_REFERENCE_PARAMETER_FIELDS",
       "The map expression should return an object expression that references fields on the parameter."
     );
@@ -237,16 +248,12 @@ function getSortArgs(path, config) {
     throw new Error("PARSER_DB_SORT_OPERATOR_SHOULD_BE_GT_OR_LT", "The sort function should use the greater than or less than operator.");
   }
 
-  if (
-    !left.isMemberExpression() ||
-    !right.isMemberExpression() ||
-    !left.get("object").isIdentifier() ||
-    !right.get("object").isIdentifier() ||
-    !left.get("property").isIdentifier() ||
-    !right.get("property").isIdentifier()
-  ) {
-    throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_BE_SIMPLE", "The sort expression should be a simple predicate comparing a single field (as of now).");
-  }
+  assertMemberExpressionUsingParameter(
+    left,
+    [firstParam, secondParam],
+    "PARSER_DB_SORT_EXPRESSION_SHOULD_BE_SIMPLE",
+    "The sort expression should be a simple predicate comparing a single field (as of now)."
+  );
 
   const leftField = left.get("property").node.name;
   const rightField = right.get("property").node.name;
