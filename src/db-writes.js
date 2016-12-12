@@ -103,6 +103,11 @@ function getDeleteArgs(path, config) {
   // eg: db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
   if (body.isUnaryExpression() && body.get("operator").node === "!") {
     return body.get("argument");
+  } else {
+    throw new Error(
+      "PARSER_DB_DELETE_SHOULD_NEGATE_PREDICATE",
+      `The filter expression should negate the predicate that identifies the item to be deleted.`
+    );
   }
 }
 
