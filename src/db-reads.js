@@ -93,7 +93,7 @@ function parseFilter(path, config) {
 function getFilterArgs(path, config) {
   const fnExpr = path[0];
   assertUnaryArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_ONE_PARAM");
-  return fnExpr.get("body").node;
+  return fnExpr.get("body");
 }
 
 
@@ -127,9 +127,7 @@ function parseMap(path, config) {
 function getMapArgs(path, config) {
   const fnExpr = path[0];
 
-  if (!fnExpr.isArrowFunctionExpression()) {
-    throw new Error(`PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION`, `Must pass an arrow function. Found ${path.node.type} instead.`);
-  }
+  assertUnaryArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_ONE_PARAM");
 
   const body = fnExpr.get("body");
   if (!body.isObjectExpression()) {

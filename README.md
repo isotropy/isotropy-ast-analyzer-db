@@ -165,7 +165,7 @@ async function getTodos(who) {
 Update a record
 ```javascript
 async function updateTodo(assignee, newAssignee) {
-  db.todos = db.todos.map(todo => todo.assignee === assignee ? { assignee: newAssignee, ...todo } : todo)
+  db.todos = db.todos.map(todo => todo.assignee === assignee ? { ...todo, assignee: newAssignee } : todo)
 }
 ```
 

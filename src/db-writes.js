@@ -14,14 +14,17 @@ function isCollection(path, config) {
 
 function parseCollection(path, config) {
   return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier ?
-    queryable.create(path.node.property.name) :
+    path.node.property.name :
     undefined;
 }
 
 
 function parseInsert(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "concat" ?
-    { type: "insert", items: path.get("arguments") } :
+    expressions.any(
+      [() => parseCollection(path.get("callee").get("object"), config)],
+      collection => ({ type: "insert", collection, items: path.get("arguments") })
+    ) :
     undefined;
 }
 
@@ -30,7 +33,7 @@ function parseUpdate(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "map" ?
     expressions.any(
       [() => parseCollection(path.get("callee").get("object"), config)],
-      query => queryable.filter(query, getUpdateArgs(path.get("arguments"), config)),
+      collection => ({ type: "update", collection, args: getUpdateArgs(path.get("arguments"), config) }),
     ) :
     undefined;
 }
@@ -70,7 +73,7 @@ function getUpdateArgs(path) {
         `In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item.`
       );
     }
-
+    return body.get("test");
 
   } else {
     throw new Error(
