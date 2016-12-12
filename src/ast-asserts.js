@@ -2,30 +2,35 @@
   Must pass an arrow function.
 */
 
-function assertArrowFunction(path, errorCode) {
+export function assertArrowFunction(path, errorCode) {
   if (!path.isArrowFunctionExpression()) {
     throw new Error(errorCode, `Must pass an arrow function. Found ${path.node.type} instead.`)
   }
 }
 
 /*
-  Function must have a single parameter.
+  Function must be an arrow function and have a single parameter.
 */
 
-function assertUnaryFunction(path, errorCode) {
-  if (path.length !== 1) {
-    throw new Error(errorCode, `Function must have a single parameter. Found ${path.get("params").node.length} instead.`)
+export function assertUnaryArrowFunction(path, errorCode) {
+  assertArrowFunction(path, errorCode);
+  const params = path.get("params");
+  if (params.length !== 1) {
+    throw new Error(errorCode, `Function must be an arrow function and have a single parameter. Found ${params.length} instead.`)
   }
 }
+
 
 
 /*
   Function must have a two parameters.
 */
 
-function assertBinaryFunction(path, errorCode) {
-  if (path.length !== 2) {
-    throw new Error(errorCode, `Function must have two parameters. Found ${path.get("params").node.length} instead.`)
+export function assertBinaryArrowFunction(path, errorCode) {
+  assertArrowFunction(path, errorCode);
+  const params = path.get("params");
+  if (params.length !== 2) {
+    throw new Error(errorCode, `Function must be an arrow function and have two parameters. Found ${params.length} instead.`)
   }
 }
 
@@ -33,7 +38,7 @@ function assertBinaryFunction(path, errorCode) {
 /*
   Check if a method call exists in the call chain.
 */
-function assertMethodIsNotInTree(path, methodName, errorCode, errorMessage) {
+export function assertMethodIsNotInTree(path, methodName, errorCode, errorMessage) {
   if (path.isCallExpression() && path.node.callee.property.name === methodName) {
     throw new Error(errorCode, errorMessage)
   }
@@ -47,12 +52,12 @@ function assertMethodIsNotInTree(path, methodName, errorCode, errorMessage) {
 /*
   Makes sure unary function parameter is exclusively used in member expression
 */
-function assertMemberExpressionUsingParameter(expr, paramNames, errorCode, errorMessage) {
+export function assertMemberExpressionUsesParameter(expr, paramNames, errorCode, errorMessage) {
   if (
     !expr.isMemberExpression() ||
     !expr.get("property").isIdentifier() ||
     !expr.get("object").isIdentifier() ||
-    !paramNames.includes(expr.get("object").get("name"))
+    !paramNames.includes(expr.get("object").get("name").node)
   ) {
     throw new Error(errorCode, errorMessage);
   }

@@ -1,14 +1,21 @@
 import * as expressions from "./parser-expressions";
+import * as queryable from "./queryable";
+import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
+  assertUnaryArrowFunction, assertBinaryArrowFunction } from "./ast-asserts";
 
 /*
   The write visitor handles operations where we mutate the db collection.
   eg:
     inserts, updates, deletes etc.
 */
-
 function isCollection(path, config) {
-  //db.todos...
   return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier;
+}
+
+function parseCollection(path, config) {
+  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier ?
+    queryable.create(path.node.property.name) :
+    undefined;
 }
 
 
@@ -20,63 +27,84 @@ function parseInsert(path, config) {
 
 
 function parseUpdate(path, config) {
-  if (path.isCallExpression() && path.node.callee.property.name === "map") {
-    if (!path.get("body").isConditionalExpression()) {
+  return path.isCallExpression() && path.node.callee.property.name === "map" ?
+    expressions.any(
+      [() => parseCollection(path.get("callee").get("object"), config)],
+      query => queryable.filter(query, getUpdateArgs(path.get("arguments"), config)),
+    ) :
+    undefined;
+}
 
-    } else {
-      throw new Error(
-        "PARSER_DB_UPDATE_SHOULD_BE_A_CONDITONAL_EXPRESSION",
-        `The update() method must use a conditional expression. Found ${path.get("body").node.type} instead.`
-      );
-    }
 
-    const firstParam = path[0].get("params")[0].node.name;
+function getUpdateArgs(path) {
+  const fnExpr = path[0];
+  assertUnaryArrowFunction(fnExpr, "PARSER_DB_UPDATE_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_ONE_PARAM")
+
+  const body = fnExpr.get("body");
+  if (body.isConditionalExpression()) {
+    const firstParam = fnExpr.get("params")[0].node.name;
+
+    const consequent = body.get("consequent");
+    const alternate = body.get("alternate");
 
     //In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item
-    // eg: db.todos = db.todos.map(todo => todo.assignee === assignee ? { assignee: newAssignee, ...todo } /* consequent */ : todo /* alternate */)
-    // The spread operator must be in the consequent
-    // Alternate must be an unmodified argument (just 'todo').
-    if (true) { //TODO
+    // eg: db.todos = db.todos.map(todo => todo.assignee === assignee ? { ...todo, assignee: newAssignee } /* consequent */ : todo /* alternate */)
+    // The consequent should be an ObjectExpression and the spread must be the first property of the consequent.
+    if (!consequent.isObjectExpression()) {
       throw new Error(
-        "PARSER_DB_UPDATE_SHOULD_RETURN_MODIFIED_AS_CONSEQUENT",
-        `In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item.`
+        "PARSER_DB_UPDATE_CONSEQUENT_SHOULD_BE_AN_OBJECT_EXPRESSION",
+        `In the ternary expression, the consequent (1st item) should be an ObjectExpression.`
+      )
+    }
+
+    if (!consequent.get("properties.0").isSpreadProperty()) {
+      throw new Error(
+        "PARSER_DB_UPDATE_CONSEQUENT_OBJECT_EXPRESSION_SHOULD_BEGIN_WITH_SPREAD_PROPERTY",
+        `In the ternary expression, the consequent should be an ObjectExpression and the spread must be the first property of the consequent.`
       );
     }
 
-    if (true) { //TODO
+    if (!alternate.isIdentifier() || alternate.get("name").node !== firstParam) {
       throw new Error(
         "PARSER_DB_UPDATE_SHOULD_RETURN_UNMODIFIED_AS_ALTERNATE",
         `In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item.`
       );
     }
 
+
   } else {
-    return undefined;
+    throw new Error(
+      "PARSER_DB_UPDATE_SHOULD_BE_A_CONDITONAL_EXPRESSION",
+      `The update() method must use a conditional expression. Found ${body.node.type} instead.`
+    );
   }
+
 }
 
 
 function parseDelete(path, config) {
   //The filter expression should negate the predicate that identifies the item to be deleted.
   // eg: db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
-  if (true) { //TODO
-    throw new Error(
-      "PARSER_DB_DELETE_SHOULD_NEGATE_PREDICATE",
-      `The filter expression should negate the predicate that identifies the item to be deleted.`
-    );
+  if (path.isCallExpression() && path.node.callee.property.name === "map") {
+    if (true) { //TODO
+      throw new Error(
+        "PARSER_DB_DELETE_SHOULD_NEGATE_PREDICATE",
+        `The filter expression should negate the predicate that identifies the item to be deleted.`
+      );
+    }
+  } else {
+    return undefined;
   }
-
-  return;
 }
 
 
 export function parseAssignment(path, config, then) {
-  return path.isAssignmentExpression() && isCollection(path.get("left")) ?
-    expression.any(
+  return path.isAssignmentExpression() && isCollection(path.get("left"), config) ?
+    expressions.any(
       [
         () => parseInsert(path.get("right"), config),
-        () => parseDelete(path.get("right"), config),
         () => parseUpdate(path.get("right"), config),
+        () => parseDelete(path.get("right"), config),
       ],
       then
     ) :

@@ -80,6 +80,13 @@ async function updateTodo(assignee, newAssignee) {
               "type": "ObjectExpression",
               "properties": {
                 "0": {
+                  "type": "SpreadProperty",
+                  "argument": {
+                    "type": "Identifier",
+                    "name": "todo"
+                  }
+                },
+                "1": {
                   "type": "ObjectProperty",
                   "method": false,
                   "key": {
@@ -89,13 +96,6 @@ async function updateTodo(assignee, newAssignee) {
                   "value": {
                     "type": "Identifier",
                     "name": "newAssignee"
-                  }
-                },
-                "1": {
-                  "type": "SpreadProperty",
-                  "argument": {
-                    "type": "Identifier",
-                    "name": "todo"
                   }
                 }
               }

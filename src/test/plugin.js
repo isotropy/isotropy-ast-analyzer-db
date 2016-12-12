@@ -1,7 +1,6 @@
 import parserDb from "../";
 
 function transformPath(path, query) {
-  console.log(query);
   return query;
 }
 

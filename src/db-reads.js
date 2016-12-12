@@ -5,7 +5,8 @@ import util from "util";
 import * as expressions from "./parser-expressions";
 import * as queryable from "./queryable";
 import Error from "isotropy-error";
-import { assertArrowFunction, assertMethodIsNotInTree } from "./ast-asserts";
+import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
+  assertUnaryArrowFunction, assertBinaryArrowFunction } from "./ast-asserts";
 
 /*
   The read visitor handles operations where we don't mutate the db collection.
@@ -61,16 +62,8 @@ export function parsePostQueryables(path, config, then) {
 /*
   db.todos.filter(...)
 */
-
 function parseFilter(path, config) {
-  return new Expression()
-    .evaluateIf(() => path.isCallExpression() && path.node.callee.property.name === "filter")
-    .returns(
-      [
-
-      ]
-    )
-  return  ?
+  return path.isCallExpression() && path.node.callee.property.name === "filter" ?
     expressions.any(
       [
         () => parseCollection(path.get("callee").get("object"), config),
@@ -79,13 +72,13 @@ function parseFilter(path, config) {
       ],
       query => queryable.filter(query, getFilterArgs(path.get("arguments"), config)),
       [
-        assertMethodIsNotInTree(
+        () => assertMethodIsNotInTree(
           path.parentPath,
           "map",
           "PARSER_DB_MAP_CANNOT_PRECEDE_FILTER",
           "A map() function must not precede the filter() function. Try reordering."
         ),
-        assertMethodIsNotInTree(
+        () => assertMethodIsNotInTree(
           path.parentPath,
           "slice",
           "PARSER_DB_SLICE_CANNOT_PRECEDE_FILTER",
@@ -99,7 +92,7 @@ function parseFilter(path, config) {
 
 function getFilterArgs(path, config) {
   const fnExpr = path[0];
-  assertArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_AN_ARROW_FUNCTION");
+  assertUnaryArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_ONE_PARAM");
   return fnExpr.get("body").node;
 }
 
@@ -109,33 +102,32 @@ function getFilterArgs(path, config) {
 */
 
 function parseMap(path, config) {
-  return new Expression()
-    .evaluateIf(() => path.isCallExpression() && path.node.callee.property.name === "map")
-    .any(
+  return path.isCallExpression() && path.node.callee.property.name === "map" ?
+    expressions.any(
       [
         () => parseCollection(path.get("callee").get("object"), config),
         () => parseFilter(path.get("callee").get("object"), config),
         () => parseSort(path.get("callee").get("object"), config),
         () => parseSlice(path.get("callee").get("object"), config),
       ],
-      query => queryable.map(query, getMapArgs(path.get("arguments"), config))
-    )
-    .throws(
+      query => queryable.map(query, getMapArgs(path.get("arguments"), config)),
       [
-        [
-          () => if (isMethodNotInTree(path.parentPath, "map")),
+        () => assertMethodIsNotInTree(
+          path.parentPath,
+          "slice",
           `PARSER_DB_MULTIPLE_MAP_CALLS`,
           `A map() function must not be preceded by another map(). Try merging them.`
-        ]
+        ),
       ]
-    );
+    ) :
+    undefined;
 }
 
 
 function getMapArgs(path, config) {
   const fnExpr = path[0];
 
-  if (!fnExpr.isArrowFunction()) {
+  if (!fnExpr.isArrowFunctionExpression()) {
     throw new Error(`PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION`, `Must pass an arrow function. Found ${path.node.type} instead.`);
   }
 
@@ -146,7 +138,7 @@ function getMapArgs(path, config) {
 
   const paramName = fnExpr.get("params")[0].get("name");
   for (const prop in body.get("properties")) {
-    assertMemberExpressionUsingParameter(
+    assertMemberExpressionUsesParameter(
       prop.get("value"),
       [paramName],
       "PARSER_DB_MAP_EXPRESSION_SHOULD_REFERENCE_PARAMETER_FIELDS",
@@ -178,7 +170,7 @@ function parseSlice(path, config) {
       ],
       query => queryable.slice(query, getSliceArgs(path.get("arguments"), config)),
       [
-        assertMethodIsNotInTree(
+        () => assertMethodIsNotInTree(
           path.parentPath,
           "slice",
           "PARSER_DB_MULTIPLE_SLICE_CALLS",
@@ -215,13 +207,13 @@ function parseSort(path, config) {
       ],
       query => queryable.sort(query, getSortArgs(path.get("arguments"))),
       [
-        assertMethodIsNotInTree(
+        () => assertMethodIsNotInTree(
           path.parentPath,
           "map",
           "PARSER_DB_MAP_CANNOT_PRECEDE_SORT",
           "A map() function must not precede the sort() function. Try reordering."
         ),
-        assertMethodIsNotInTree(
+        () => assertMethodIsNotInTree(
           path.parentPath,
           "slice",
           "PARSER_DB_SLICE_CANNOT_PRECEDE_SORT",
@@ -235,7 +227,7 @@ function parseSort(path, config) {
 
 function getSortArgs(path, config) {
   const fnExpr = path[0];
-  assertArrowFunction(fnExpr, "PARSER_DB_SORT_ARG_SHOULD_BE_ARROW_FUNCTION");
+  assertBinaryArrowFunction(fnExpr, "PARSER_DB_SORT_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_TWO_PARAMS");
 
   const firstParam = path[0].get("params")[0].node.name;
   const secondParam = path[0].get("params")[1].node.name;
@@ -248,7 +240,7 @@ function getSortArgs(path, config) {
     throw new Error("PARSER_DB_SORT_OPERATOR_SHOULD_BE_GT_OR_LT", "The sort function should use the greater than or less than operator.");
   }
 
-  assertMemberExpressionUsingParameter(
+  assertMemberExpressionUsesParameter(
     left,
     [firstParam, secondParam],
     "PARSER_DB_SORT_EXPRESSION_SHOULD_BE_SIMPLE",

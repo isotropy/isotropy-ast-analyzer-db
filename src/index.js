@@ -6,12 +6,11 @@ import * as dbWrites from "./db-writes";
 
 */
 export default function(fnRewriter, config) {
-
   function parse(path, parsers) {
     for (const parser of parsers) {
       const result = parser(path, config);
       if (result) {
-        return fnRewriter(path, result);        
+        return fnRewriter(path, result);
       }
     }
     path.skip();
@@ -26,9 +25,10 @@ export default function(fnRewriter, config) {
       //Reads can be assignments as well
       //  eg: foo.bar = db.todos.filter(...)
 
-      ExpressionStatement(path) {
+      AssignmentExpression(path) {
         parse(path, [dbWrites.parseAssignment]);
       },
+
 
       //These will always be reads.
       //MemberExpressions under db writes would have been handled in ExpressionStatement
