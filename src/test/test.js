@@ -23,7 +23,7 @@ describe("isotropy-parser-db", () => {
   [
     //'query',
     //'query',
-    'update',
+    'delete',
     //'count'
   ].map(test);
 });

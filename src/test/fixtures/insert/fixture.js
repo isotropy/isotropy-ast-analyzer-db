@@ -1,3 +1,3 @@
-async function updateTodo(assignee, newAssignee) {
-  db.todos = db.todos.map(todo => todo.assignee === assignee ? { ...todo, assignee: newAssignee } : todo)
+async function addTodo(title, assignee) {
+  db.todos = db.todos.concat({ title, assignee });
 }

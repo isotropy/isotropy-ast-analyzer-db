@@ -23,7 +23,7 @@ function parseInsert(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "concat" ?
     expressions.any(
       [() => parseCollection(path.get("callee").get("object"), config)],
-      collection => ({ type: "insert", collection, items: path.get("arguments") })
+      collection => ({ type: "insert", collection, items: path.get("arguments.0").node })
     ) :
     undefined;
 }
@@ -70,7 +70,7 @@ function getUpdateArgs(path) {
     if (!alternate.isIdentifier() || alternate.get("name").node !== firstParam) {
       throw new Error(
         "PARSER_DB_UPDATE_SHOULD_RETURN_UNMODIFIED_AS_ALTERNATE",
-        `In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item.`
+        `In the ternary expression, the consequent (1st item) should be the updated item, and alternate (2nd item) should be the unmodified item.`
       );
     }
     return body.get("test");
@@ -84,19 +84,25 @@ function getUpdateArgs(path) {
 
 }
 
-
 function parseDelete(path, config) {
+  return path.isCallExpression() && path.node.callee.property.name === "filter" ?
+    expressions.any(
+      [() => parseCollection(path.get("callee").get("object"), config)],
+      collection => ({ type: "delete", collection, args: getDeleteArgs(path.get("arguments"), config) }),
+    ) :
+    undefined;
+}
+
+
+function getDeleteArgs(path, config) {
+  const fnExpr = path[0];
+  assertUnaryArrowFunction(fnExpr, "PARSER_DB_DELETE_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_ONE_PARAM")
+
+  const body = fnExpr.get("body");
   //The filter expression should negate the predicate that identifies the item to be deleted.
   // eg: db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
-  if (path.isCallExpression() && path.node.callee.property.name === "map") {
-    if (true) { //TODO
-      throw new Error(
-        "PARSER_DB_DELETE_SHOULD_NEGATE_PREDICATE",
-        `The filter expression should negate the predicate that identifies the item to be deleted.`
-      );
-    }
-  } else {
-    return undefined;
+  if (body.isUnaryExpression() && body.get("operator").node === "!") {
+    return body.get("argument");
   }
 }
 
