@@ -21,9 +21,14 @@ describe("isotropy-parser-db", () => {
   }
 
   [
-    //'query',
-    //'query',
+    'count',
     'delete',
-    //'count'
+    'insert',
+    'select-all',
+    'select-fields',
+    'select-slice',
+    'select-sort',
+    'select',
+    'update',
   ].map(test);
 });
