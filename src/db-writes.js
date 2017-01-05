@@ -23,7 +23,7 @@ function parseInsert(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "concat" ?
     expressions.any(
       [() => parseCollection(path.get("callee").get("object"), config)],
-      collection => ({ type: "insert", collection, items: path.get("arguments.0").node })
+      collection => ({ type: "insert", collection, items: path.get("arguments.0") })
     ) :
     undefined;
 }
@@ -33,7 +33,7 @@ function parseUpdate(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "map" ?
     expressions.any(
       [() => parseCollection(path.get("callee").get("object"), config)],
-      collection => ({ type: "update", collection, args: getUpdateArgs(path.get("arguments"), config) }),
+      collection => ({ type: "update", collection, ...getUpdateArgs(path.get("arguments"), config) }),
     ) :
     undefined;
 }
@@ -73,7 +73,13 @@ function getUpdateArgs(path) {
         `In the ternary expression, the consequent (1st item) should be the updated item, and alternate (2nd item) should be the unmodified item.`
       );
     }
-    return body.get("test");
+
+    Object.keys(consequent.get("properties"))
+
+    return {
+      predicate: body.get("test").node,
+      fields: consequent.get("properties")
+    };
 
   } else {
     throw new Error(
@@ -81,14 +87,13 @@ function getUpdateArgs(path) {
       `The update() method must use a conditional expression. Found ${body.node.type} instead.`
     );
   }
-
 }
 
 function parseDelete(path, config) {
   return path.isCallExpression() && path.node.callee.property.name === "filter" ?
     expressions.any(
       [() => parseCollection(path.get("callee").get("object"), config)],
-      collection => ({ type: "delete", collection, args: getDeleteArgs(path.get("arguments"), config) }),
+      collection => ({ type: "delete", collection, predicate: getDeleteArgs(path.get("arguments"), config) }),
     ) :
     undefined;
 }

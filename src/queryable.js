@@ -4,30 +4,37 @@ function assertQuery(query) {
   }
 }
 
-export function create(name) {
-  return { type: "query", name, filters: [] }
+export function createQuery(name, props, source) {
+  return parent ?
+    { type: "query", method: name, ...props, source } :
+    { type: "query", collection: name };
+}
+
+export function createValue(name, props, source) {
+  return { type: "value", name, ...props, source }
 }
 
 export function filter(query, filter) {
   assertQuery(query);
-  return { ...query, filters: query.filters.concat(filter) }
+  return createQuery("filter", { predicate }, query);
 }
 
 export function map(query, fields) {
   assertQuery(query);
-  return { type: "query", source: query, fields }
+  return createQuery("map", { fields }, query);
 }
 
-export function slice(query, slice) {
+export function slice(query, from, to) {
   assertQuery(query);
-  return { ...query, slice }
+  return createQuery("slice", { from, to }, query);
 }
 
-export function sort(query, sort) {
+export function sort(query, fields) {
   assertQuery(query);
-  return { ...query, sort }
+  return createQuery("sort", { fields }, query);
 }
 
 export function length(query) {
-  return { type: "length", source: query }
+  assertQuery(query);
+  return createQuery("length", {}, query);
 }

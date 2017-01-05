@@ -1,3 +1,4 @@
-async function getAllTodos(who) {
-  return db.todos;
+export default {
+  type: "query",
+  name: "todos",
 }
