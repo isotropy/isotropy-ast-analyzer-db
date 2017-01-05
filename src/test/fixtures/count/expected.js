@@ -25,9 +25,7 @@ export default {
     },
     source: {
       type: "query",
-      collection: "todos",
-      isRoot: true
+      collection: "todos"
     }
-    isRoot: false
   }
 }
