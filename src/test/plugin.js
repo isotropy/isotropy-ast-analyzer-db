@@ -1,8 +1,16 @@
 import parserDb from "../";
 
-function transformPath(path, query) {
-  console.log(query);
-  return query;
-}
+export default function() {
+  let _query;
 
-export default parserDb(transformPath, { identifier: "db" });
+  function transformPath(path, query) {
+    _query = query;
+  }
+
+  return {
+    plugin: parserDb(transformPath, { identifier: "db" }),
+    getResult: () => {
+      return _query;
+    }
+  }
+}

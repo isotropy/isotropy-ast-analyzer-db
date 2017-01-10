@@ -4,17 +4,19 @@ function assertQuery(query) {
   }
 }
 
+export function createQueryRoot(collection) {
+  return { type: "query", collection };
+}
+
 export function createQuery(name, props, source) {
-  return parent ?
-    { type: "query", method: name, ...props, source } :
-    { type: "query", collection: name };
+  return { type: "query", method: name, ...props, source };
 }
 
 export function createValue(name, props, source) {
   return { type: "value", name, ...props, source }
 }
 
-export function filter(query, filter) {
+export function filter(query, predicate) {
   assertQuery(query);
   return createQuery("filter", { predicate }, query);
 }
@@ -34,7 +36,7 @@ export function sort(query, fields) {
   return createQuery("sort", { fields }, query);
 }
 
-export function length(query) {
+export function count(query) {
   assertQuery(query);
-  return createQuery("length", {}, query);
+  return createValue("length", {}, query);
 }

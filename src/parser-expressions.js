@@ -31,7 +31,7 @@ export function single(expression, then, preconditions = []) {
 
   const result = expression();
   return result ?
-    then ? then(result) : undefined :
+    then ? then(result) : result :
     undefined;
 }
 

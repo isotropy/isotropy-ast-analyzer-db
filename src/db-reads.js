@@ -17,7 +17,7 @@ import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUse
 function parseCollection(path, config) {
   //db.todos...
   return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier ?
-    queryable.create(path.node.property.name) :
+    queryable.createQueryRoot(path.node.property.name) :
     undefined;
 }
 
@@ -54,7 +54,7 @@ export function parseQueryables(path, config, then) {
 
 export function parsePostQueryables(path, config, then) {
   return expressions.single(
-    () => parseLength(path, config),
+    () => parseCount(path, config),
     then
   )
 }
@@ -273,8 +273,11 @@ function getSortArgs(path, config) {
   db.todos.filter(...).length
 */
 
-function parseLength(path, config) {
+function parseCount(path, config) {
   return path.isMemberExpression() && path.get("property").isIdentifier() && path.node.property.name === "length" ?
-    parseQueryables(path.get("object"), config, query => queryable.length(query)) :
+    expressions.single(
+      () => parseQueryables(path.get("object"), config),
+      query => queryable.count(query)
+    ) :
     undefined;
 }

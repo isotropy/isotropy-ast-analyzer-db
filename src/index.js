@@ -1,4 +1,4 @@
-/* @flow */
+  /* @flow */
 import * as dbReads from "./db-reads";
 import * as dbWrites from "./db-writes";
 
@@ -9,8 +9,8 @@ export default function(fnRewriter, config) {
   function parse(path, parser) {
     const result = parser(path, config);
     if (result) {
-      fnRewriter(path, result);
       path.skip();
+      fnRewriter(path, result);
     }
   }
 
