@@ -1,8 +1,8 @@
-export default {
+module.exports = {
   type: "query",
   method: "map",
   fields: [
-    "assignee"
+    ["mainAssignee", "assignee"]
   ],
   source: {
     type: "query",

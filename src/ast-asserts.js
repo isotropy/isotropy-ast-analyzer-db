@@ -2,9 +2,9 @@
   Must pass an arrow function.
 */
 
-export function assertArrowFunction(path, errorCode) {
+export function assertArrowFunction(path) {
   if (!path.isArrowFunctionExpression()) {
-    throw new Error(errorCode, `Must pass an arrow function. Found ${path.node.type} instead.`)
+    throw new Error(`Must pass an arrow function. Found ${path.node.type} instead.`)
   }
 }
 
@@ -12,11 +12,11 @@ export function assertArrowFunction(path, errorCode) {
   Function must be an arrow function and have a single parameter.
 */
 
-export function assertUnaryArrowFunction(path, errorCode) {
-  assertArrowFunction(path, errorCode);
+export function assertUnaryArrowFunction(path) {
+  assertArrowFunction(path);
   const params = path.get("params");
   if (params.length !== 1) {
-    throw new Error(errorCode, `Function must be an arrow function and have a single parameter. Found ${params.length} instead.`)
+    throw new Error(`Function must be an arrow function and have a single parameter. Found ${params.length} instead.`)
   }
 }
 
@@ -26,11 +26,11 @@ export function assertUnaryArrowFunction(path, errorCode) {
   Function must have a two parameters.
 */
 
-export function assertBinaryArrowFunction(path, errorCode) {
-  assertArrowFunction(path, errorCode);
+export function assertBinaryArrowFunction(path) {
+  assertArrowFunction(path);
   const params = path.get("params");
   if (params.length !== 2) {
-    throw new Error(errorCode, `Function must be an arrow function and have two parameters. Found ${params.length} instead.`)
+    throw new Error(`Function must be an arrow function and have two parameters. Found ${params.length} instead.`)
   }
 }
 
@@ -38,13 +38,15 @@ export function assertBinaryArrowFunction(path, errorCode) {
 /*
   Check if a method call exists in the call chain.
 */
-export function assertMethodIsNotInTree(path, methodName, errorCode, errorMessage) {
-  if (path.isCallExpression() && path.node.callee.property.name === methodName) {
-    throw new Error(errorCode, errorMessage)
-  }
-
-  if (path.parentPath.isCallExpression()) {
-    assertMethodIsNotInTree(path.parentPath, methodName);
+export function assertMethodIsNotInTree(path, methodName) {
+  const callee = path.get("callee");
+  if (callee) {
+    if (callee.node.property.name === methodName) {
+      throw new Error(`${methodName} should not be in tree.`)
+    }
+    if (callee.get("object").isCallExpression()) {
+      assertMethodIsNotInTree(callee.get("object"), methodName);
+    }
   }
 }
 
@@ -52,13 +54,13 @@ export function assertMethodIsNotInTree(path, methodName, errorCode, errorMessag
 /*
   Makes sure unary function parameter is exclusively used in member expression
 */
-export function assertMemberExpressionUsesParameter(expr, paramNames, errorCode, errorMessage) {
+export function assertMemberExpressionUsesParameter(expr, paramNames) {
   if (
     !expr.isMemberExpression() ||
     !expr.get("property").isIdentifier() ||
     !expr.get("object").isIdentifier() ||
     !paramNames.includes(expr.get("object").get("name").node)
   ) {
-    throw new Error(errorCode, errorMessage);
+    throw new Error(`The map expression should return an object expression that references fields on the parameter. Parameters were ${paramNames.join(", ")}.`);
   }
 }

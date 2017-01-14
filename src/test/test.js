@@ -1,56 +1,62 @@
+
 import should from "should";
 import * as babel from "babel-core";
 import fs from "fs";
 import path from "path";
 import makePlugin from "./plugin";
+import sourceMapSupport from 'source-map-support';
 
-describe("isotropy-parser-db", () => {
-  it("count", () => {
-    const fixturePath = path.resolve(__dirname, 'fixtures', 'count', 'fixture.js');
-    const expected = require("./fixtures/count/expected");
-    const pluginInfo = makePlugin();
+sourceMapSupport.install();
 
-    babel.transformFileSync(fixturePath, {
-      plugins: [[pluginInfo.plugin], "transform-object-rest-spread"],
-      babelrc: false,
-    });
-
-    const actual = pluginInfo.getResult();
-    console.log(actual);
-    actual.should.deepEqual(expected);
-
-    /*
-    export default {
-      type: "value",
-      method: "length",
-      source: {
-        type: "query",
-        method: "filter",
-        predicate: {
-          type: "BinaryExpression",
-          left: {
-            type: "MemberExpression",
-            object: {
-              type: "Identifier",
-              name: "todo"
-            },
-            property: {
-              type: "Identifier",
-              name: "assignee"
-            }
-          },
-          operator: "===",
-          right: {
-            type: "Identifier",
-            name: "who"
-          }
-        },
-        source: {
-          type: "query",
-          collection: "todos"
+function clean(obj) {
+  if (typeof obj !== "object") {
+    return obj;
+  } else {
+    if (Array.isArray(obj)) {
+      return obj.concat();
+    } else {
+      const newObj = {};
+      for (const key in obj) {
+        if (!(["start", "end", "loc", "computed", "shorthand", "extra", "__clone"].includes(key))) {
+          newObj[key] = clean(obj[key]);
         }
       }
+      return newObj;
     }
-    */
-  });
+  }
+}
+
+describe("isotropy-parser-db", () => {
+  function run([test, testName]) {
+    it(test, () => {
+      const fixturePath = path.resolve(__dirname, 'fixtures', test, 'fixture.js');
+      const expected = require(`./fixtures/${test}/expected`);
+      const pluginInfo = makePlugin();
+
+      babel.transformFileSync(fixturePath, {
+        plugins: [[pluginInfo.plugin], "transform-object-rest-spread"],
+        babelrc: false,
+      });
+
+      const result = pluginInfo.getResult();
+      const actual = clean(result);
+      actual.should.deepEqual(expected);
+    });
+  }
+
+  const tests = [
+    ['count', 'count'],
+    //['delete', 'delete'],
+    // ['insert', 'insert'],
+    ['select', 'select'],
+    ['select-all', 'select-all'],
+    ['select-fields', 'select-fields'],
+    ['select-slice', 'select-slice'],
+    ['select-sort', 'select-sort'],
+  ];
+
+  for (const test of tests) {
+    run(test);
+  }
+
 });

@@ -1,13 +1,21 @@
   /* @flow */
 import * as dbReads from "./db-reads";
-import * as dbWrites from "./db-writes";
+//import * as dbWrites from "./db-writes";
 
 /*
 
 */
 export default function(fnRewriter, config) {
-  function parse(path, parser) {
-    const result = parser(path, config);
+
+  function analyzeNodeType(path, analyzers) {
+    function findResult(args) {
+      if (args.length) {
+        const [analyzer, ...rest] = args;
+        return analyzer(path, config) || findResult(rest);
+      }
+    }
+
+    const result = findResult(analyzers);
     if (result) {
       path.skip();
       fnRewriter(path, result);
@@ -23,23 +31,23 @@ export default function(fnRewriter, config) {
       //Reads can be assignments as well
       //  eg: foo.bar = db.todos.filter(...)
 
-      AssignmentExpression(path) {
-        parse(path, dbWrites.parseAssignment);
-      },
+      // AssignmentExpression(path) {
+      //   analyzeNodeType(path, [dbWrites.analyzeAssignmentExpression]);
+      // },
 
 
       //These will always be reads.
       //MemberExpressions under db writes would have been handled in ExpressionStatement
 
       MemberExpression(path) {
-        parse(path, dbReads.parsePostQueryables)
+        analyzeNodeType(path, [dbReads.analyzeMemberExpression])
       },
 
       //These will always be reads.
       //CallExpressions under db writes would have been handled in ExpressionStatement
 
       CallExpression(path) {
-        parse(path, dbReads.parseQueryables);
+        analyzeNodeType(path, [dbReads.analyzeCallExpression]);
       }
 
     }

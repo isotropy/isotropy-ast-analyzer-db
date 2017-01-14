@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   type: "query",
   method: "filter",
   predicate: {

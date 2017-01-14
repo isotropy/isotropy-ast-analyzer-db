@@ -12,8 +12,10 @@
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.16.0",
+    "babel-preset-latest": "^6.16.0",
     "babel-preset-modern-browsers": "^7.0.0",
     "mocha": "*",
-    "should": "*"
+    "should": "*",
+    "source-map-support": "^0.4.8"
   }
 }

@@ -13,7 +13,7 @@ export function createQuery(name, props, source) {
 }
 
 export function createValue(name, props, source) {
-  return { type: "value", name, ...props, source }
+  return { type: "value", property: name, ...props, source }
 }
 
 export function filter(query, predicate) {
@@ -26,7 +26,8 @@ export function map(query, fields) {
   return createQuery("map", { fields }, query);
 }
 
-export function slice(query, from, to) {
+export function slice(query, args) {
+  const { from, to } = args;
   assertQuery(query);
   return createQuery("slice", { from, to }, query);
 }
@@ -36,7 +37,7 @@ export function sort(query, fields) {
   return createQuery("sort", { fields }, query);
 }
 
-export function count(query) {
+export function length(query) {
   assertQuery(query);
   return createValue("length", {}, query);
 }

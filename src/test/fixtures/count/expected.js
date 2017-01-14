@@ -1,6 +1,6 @@
 module.exports = {
   type: "value",
-  method: "length",
+  property: "length",
   source: {
     type: "query",
     method: "filter",

@@ -2,9 +2,11 @@ import template from "babel-template";
 import * as t from "babel-types";
 import generate from "babel-generator";
 import util from "util";
-import * as expressions from "./parser-expressions";
-import * as queryable from "./queryable";
+
 import Error from "isotropy-error";
+
+import * as queryable from "./queryable";
+import makeAnalyzer from "./analyze";
 import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
   assertUnaryArrowFunction, assertBinaryArrowFunction } from "./ast-asserts";
 
@@ -14,13 +16,71 @@ import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUse
     selects, count, map etc.
 */
 
-function parseCollection(path, config) {
-  //db.todos...
-  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier ?
-    queryable.createQueryRoot(path.node.property.name) :
-    undefined;
+const nodeDefinitions = [
+  {
+    id: "root",
+    type: "predicate",
+    predicate: isRoot,
+    builder: queryable.createQueryRoot,
+    args: getRootArgs
+  },
+  {
+    id: "filter",
+    name: "filter",
+    type: "CallExpression",
+    follows: ["root", "sort"],
+    builder: queryable.filter,
+    args: getFilterArgs
+  },
+  {
+    id: "map",
+    name: "map",
+    type: "CallExpression",
+    follows: ["root", "filter", "sort", "slice"],
+    builder: queryable.map,
+    args: getMapArgs,
+  },
+  {
+    id: "slice",
+    name: "slice",
+    type: "CallExpression",
+    follows: ["root", "filter", "sort", "map"],
+    builder: queryable.slice,
+    args: getSliceArgs,
+  },
+  {
+    id: "sort",
+    name: "sort",
+    type: "CallExpression",
+    follows: ["root", "filter"],
+    builder: queryable.sort,
+    args: getSortArgs,
+  },
+  {
+    id: "length",
+    name: "length",
+    type: "MemberExpression",
+    follows: ["root", "filter"],
+    builder: queryable.length,
+  }
+];
+
+function isRoot(path, config) {
+  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier;
 }
 
+function getRootArgs(path, config) {
+  return path.node.property.name;
+}
+
+function mustAnalyze(path, config) {
+  return true;
+}
+
+const analyzer = makeAnalyzer(
+  nodeDefinitions,
+  mustAnalyze
+);
 
 /*
   Any expression on which you can chain more methods.
@@ -32,17 +92,8 @@ function parseCollection(path, config) {
   //db.todos.sort()
 */
 
-export function parseQueryables(path, config, then) {
-  return expressions.any(
-    [
-      () => parseCollection(path, config),
-      () => parseFilter(path, config),
-      () => parseMap(path, config),
-      () => parseSlice(path, config),
-      () => parseSort(path, config)
-    ],
-    then
-  );
+export function analyzeCallExpression(path, config) {
+  return analyzer(path, ["filter", "map", "slice", "sort"], config)
 }
 
 
@@ -52,48 +103,19 @@ export function parseQueryables(path, config, then) {
   No more chanining is possible.
 */
 
-export function parsePostQueryables(path, config, then) {
-  return expressions.single(
-    () => parseCount(path, config),
-    then
-  )
+export function analyzeMemberExpression(path, config) {
+  return analyzer(path, ["root", "length"], config)
 }
+
 
 /*
   db.todos.filter(...)
 */
-function parseFilter(path, config) {
-  return path.isCallExpression() && path.node.callee.property.name === "filter" ?
-    expressions.any(
-      [
-        () => parseCollection(path.get("callee").get("object"), config),
-        () => parseFilter(path.get("callee").get("object"), config),
-        () => parseSort(path.get("callee").get("object"), config),
-      ],
-      query => queryable.filter(query, getFilterArgs(path.get("arguments"), config)),
-      [
-        () => assertMethodIsNotInTree(
-          path.parentPath,
-          "map",
-          "PARSER_DB_MAP_CANNOT_PRECEDE_FILTER",
-          "A map() function must not precede the filter() function. Try reordering."
-        ),
-        () => assertMethodIsNotInTree(
-          path.parentPath,
-          "slice",
-          "PARSER_DB_SLICE_CANNOT_PRECEDE_FILTER",
-          "A slice() function must not precede the filter() function. Try reordering."
-        ),
-      ]
-    ) :
-    undefined;
-}
-
 
 function getFilterArgs(path, config) {
   const fnExpr = path[0];
-  assertUnaryArrowFunction(fnExpr, "PARSER_DB_FILTER_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_ONE_PARAM");
-  return fnExpr.get("body");
+  assertUnaryArrowFunction(fnExpr);
+  return fnExpr.get("body").node;
 }
 
 
@@ -101,54 +123,30 @@ function getFilterArgs(path, config) {
   db.todos.map(...)
 */
 
-function parseMap(path, config) {
-  return path.isCallExpression() && path.node.callee.property.name === "map" ?
-    expressions.any(
-      [
-        () => parseCollection(path.get("callee").get("object"), config),
-        () => parseFilter(path.get("callee").get("object"), config),
-        () => parseSort(path.get("callee").get("object"), config),
-        () => parseSlice(path.get("callee").get("object"), config),
-      ],
-      query => queryable.map(query, getMapArgs(path.get("arguments"), config)),
-      [
-        () => assertMethodIsNotInTree(
-          path.parentPath,
-          "slice",
-          `PARSER_DB_MULTIPLE_MAP_CALLS`,
-          `A map() function must not be preceded by another map(). Try merging them.`
-        ),
-      ]
-    ) :
-    undefined;
-}
-
-
 function getMapArgs(path, config) {
   const fnExpr = path[0];
 
-  assertUnaryArrowFunction(fnExpr, "PARSER_DB_MAP_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_ONE_PARAM");
+  assertUnaryArrowFunction(fnExpr);
 
   const body = fnExpr.get("body");
+
   if (!body.isObjectExpression()) {
-    throw new Error("PARSER_DB_MAP_EXPRESSION_SHOULD_RETURN_AN_OBJECT", "The map expression should return an object.");
+    throw new Error("The map expression should return an object.");
   }
 
-  const paramName = fnExpr.get("params")[0].get("name");
-  for (const prop in body.get("properties")) {
+  const paramName = fnExpr.get("params")[0].get("name").node;
+  for (const prop of body.get("properties")) {
     assertMemberExpressionUsesParameter(
       prop.get("value"),
-      [paramName],
-      "PARSER_DB_MAP_EXPRESSION_SHOULD_REFERENCE_PARAMETER_FIELDS",
-      "The map expression should return an object expression that references fields on the parameter."
+      [paramName]
     );
   }
 
   return body
     .get("properties")
     .map(p => [
-      p.get("key").get("name"),
-      p.get("value").get("property").get("name")
+      p.node.key.name,
+      p.node.value.property.name
     ]);
 }
 
@@ -156,28 +154,6 @@ function getMapArgs(path, config) {
 /*
   db.todos.filter(...).slice(...)
 */
-
-function parseSlice(path, config) {
-  return path.isCallExpression() && path.node.callee.property.name === "slice" ?
-    expressions.any(
-      [
-        () => parseCollection(path.get("callee").get("object"), config),
-        () => parseFilter(path.get("callee").get("object"), config),
-        () => parseSort(path.get("callee").get("object"), config),
-        () => parseMap(path.get("callee").get("object"), config),
-      ],
-      query => queryable.slice(query, getSliceArgs(path.get("arguments"), config)),
-      [
-        () => assertMethodIsNotInTree(
-          path.parentPath,
-          "slice",
-          "PARSER_DB_MULTIPLE_SLICE_CALLS",
-          "A slice() function must not be preceded by another slice()."
-        )
-      ]
-    ) :
-    undefined;
-}
 
 function getSliceArgs(path, config) {
   return {
@@ -196,36 +172,9 @@ function getSliceArgs(path, config) {
   db.todos.sort((x, y) => x.f1 > y.f1 || (x.f1 === y.f1 && x.f2 > y.f2))
 */
 
-function parseSort(path, config) {
-  return path.isCallExpression() && path.node.callee.property.name === "sort" ?
-    expressions.any(
-      [
-        () => parseCollection(path.get("callee").get("object"), config),
-        () => parseFilter(path.get("callee").get("object"), config),
-      ],
-      query => queryable.sort(query, getSortArgs(path.get("arguments"))),
-      [
-        () => assertMethodIsNotInTree(
-          path.parentPath,
-          "map",
-          "PARSER_DB_MAP_CANNOT_PRECEDE_SORT",
-          "A map() function must not precede the sort() function. Try reordering."
-        ),
-        () => assertMethodIsNotInTree(
-          path.parentPath,
-          "slice",
-          "PARSER_DB_SLICE_CANNOT_PRECEDE_SORT",
-          "A slice() function must not precede the sort() function. Try reordering."
-        ),
-      ]
-    ) :
-    undefined;
-}
-
-
 function getSortArgs(path, config) {
   const fnExpr = path[0];
-  assertBinaryArrowFunction(fnExpr, "PARSER_DB_SORT_ARG_SHOULD_BE_AN_ARROW_FUNCTION_WITH_TWO_PARAMS");
+  assertBinaryArrowFunction(fnExpr);
 
   const firstParam = path[0].get("params")[0].node.name;
   const secondParam = path[0].get("params")[1].node.name;
@@ -235,21 +184,19 @@ function getSortArgs(path, config) {
 
   const operator = path[0].get("body").get("operator").node;
   if (![">", ">=", "<", "<="].includes(operator)) {
-    throw new Error("PARSER_DB_SORT_OPERATOR_SHOULD_BE_GT_OR_LT", "The sort function should use the greater than or less than operator.");
+    throw new Error("The sort function should use the greater than or less than operator.");
   }
 
   assertMemberExpressionUsesParameter(
     left,
-    [firstParam, secondParam],
-    "PARSER_DB_SORT_EXPRESSION_SHOULD_BE_SIMPLE",
-    "The sort expression should be a simple predicate comparing a single field (as of now)."
+    [firstParam, secondParam]
   );
 
   const leftField = left.get("property").node.name;
   const rightField = right.get("property").node.name;
 
   if (leftField !== rightField) {
-    throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_HAVE_THE_SAME_FIELD", "The sort expression should use the same field.")
+    throw new Error("The sort expression should use the same field.")
   }
 
   const leftObject = left.get("object").node.name;
@@ -257,7 +204,7 @@ function getSortArgs(path, config) {
 
   const areBothParamsReferenced = [firstParam, secondParam].every(i => [leftObject, rightObject].includes(i));
   if (!areBothParamsReferenced) {
-    throw new Error("PARSER_DB_SORT_EXPRESSION_SHOULD_REFERENCE_BOTH_PARAMETERS", "The sort expression should reference both parameters in the arrow function.")
+    throw new Error("The sort expression should reference both parameters in the arrow function.")
   }
 
   return [
@@ -266,18 +213,4 @@ function getSortArgs(path, config) {
       ascending: (operator === ">" && firstParam === leftObject) || (operator === "<" && firstParam === rightObject)
     }
   ]
-}
-
-
-/*
-  db.todos.filter(...).length
-*/
-
-function parseCount(path, config) {
-  return path.isMemberExpression() && path.get("property").isIdentifier() && path.node.property.name === "length" ?
-    expressions.single(
-      () => parseQueryables(path.get("object"), config),
-      query => queryable.count(query)
-    ) :
-    undefined;
 }
