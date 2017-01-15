@@ -188,10 +188,14 @@ Configuration in package.json
 {
   "isotropy": {
     "mongodb": {
-      "host": "localhost",
-      "port": 19027,
-      "password": "abcsfdef",
-      "database": "todos-db"
+      "connections": {
+        "default": {
+          "host": "localhost",
+          "port": 19027,
+          "password": "abcsfdef",
+          "database": "todos-db"
+        }
+      }
     }
   }
 }

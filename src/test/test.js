@@ -27,32 +27,35 @@ function clean(obj) {
 }
 
 describe("isotropy-parser-db", () => {
-  function run([test, testName]) {
-    it(test, () => {
-      const fixturePath = path.resolve(__dirname, 'fixtures', test, 'fixture.js');
-      const expected = require(`./fixtures/${test}/expected`);
-      const pluginInfo = makePlugin();
+  function run([description, dir]) {
+    ['simple', 'import'].forEach((subType) => {
+      it(`${description}-${subType}`, () => {
+        const fixturePath = path.resolve(__dirname, 'fixtures', dir, `${subType}.js`);
+        const expected = require(`./fixtures/${dir}/expected`);
+        const pluginInfo = makePlugin(subType);
 
-      babel.transformFileSync(fixturePath, {
-        plugins: [[pluginInfo.plugin], "transform-object-rest-spread"],
-        babelrc: false,
+        babel.transformFileSync(fixturePath, {
+          plugins: [[pluginInfo.plugin], "transform-object-rest-spread"],
+          babelrc: false,
+        });
+
+        const result = pluginInfo.getResult();
+        const actual = clean(result);
+        actual.should.deepEqual(expected);
       });
-
-      const result = pluginInfo.getResult();
-      const actual = clean(result);
-      actual.should.deepEqual(expected);
-    });
+    })
   }
 
   const tests = [
     ['count', 'count'],
     //['delete', 'delete'],
     // ['insert', 'insert'],
-    ['select', 'select'],
-    ['select-all', 'select-all'],
-    ['select-fields', 'select-fields'],
-    ['select-slice', 'select-slice'],
-    ['select-sort', 'select-sort'],
+    // ['select', 'select'],
+    // ['select-all', 'select-all'],
+    // ['select-fields', 'select-fields'],
+    // ['select-slice', 'select-slice'],
+    // ['select-sort', 'select-sort'],
+    //['update', 'update'],
   ];
 
   for (const test of tests) {

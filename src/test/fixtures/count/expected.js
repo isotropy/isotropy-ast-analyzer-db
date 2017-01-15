@@ -25,6 +25,7 @@ module.exports = {
     },
     source: {
       type: "query",
+      db: "db",
       collection: "todos"
     }
   }

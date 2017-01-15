@@ -1,29 +1,41 @@
   /* @flow */
-import * as dbReads from "./db-reads";
-//import * as dbWrites from "./db-writes";
 
-/*
+import * as analyzers from "./analyzers";
+import * as builtInTransformers from "./transformers";
 
-*/
-export default function(fnRewriter, config) {
 
-  function analyzeNodeType(path, analyzers) {
-    function findResult(args) {
-      if (args.length) {
-        const [analyzer, ...rest] = args;
-        return analyzer(path, config) || findResult(rest);
+function assertValidConfiguration(config) {
+  if (config.simple) {
+    if (!client.identifier) {
+      throw new Error("Simple configuration requires the config.identifier to be set.")
+    } else {
+      if (!config.clientPackageName) {
+        throw new Error("config.clientPackageName is missing.");
+      } else if (!config.serverPackageName) {
+        throw new Error("config.serverPackageName is missing.");
       }
     }
+  }
+}
 
-    const result = findResult(analyzers);
-    if (result) {
+export default function(transformers, config) {
+  assertValidConfiguration(config);
+
+  let state = {};
+
+  function transformPath(path, analyze, transform) {
+    const analysis = analyze(path, state, config);
+    if (analysis) {
       path.skip();
-      fnRewriter(path, result);
+      transform(path, analysis, state, config);
     }
   }
 
   return {
     visitor: {
+      ImportDeclaration(path) {
+        transformPath(path, analyzers.meta.analyzeImportDeclaration, builtInTransformers.meta.transformImportDeclaration);
+      },
 
       //Writes will be an ExpressionStatement.
       //  eg (delete): db.todos = db.todos.filter(todo => todo !== db.todos.find(todo => todo.assignee == assignee && todo.title === title))
@@ -32,22 +44,19 @@ export default function(fnRewriter, config) {
       //  eg: foo.bar = db.todos.filter(...)
 
       // AssignmentExpression(path) {
-      //   analyzeNodeType(path, [dbWrites.analyzeAssignmentExpression]);
+      //   transformPath(path, analyzers.write.analyzeAssignmentExpression, transformers.write.transformAssignmentExpression);
       // },
 
-
-      //These will always be reads.
-      //MemberExpressions under db writes would have been handled in ExpressionStatement
-
+      //Db ops which masquerade as properties
+      //  eg: db.todos.length
       MemberExpression(path) {
-        analyzeNodeType(path, [dbReads.analyzeMemberExpression])
+        transformPath(path, analyzers.read.analyzeMemberExpression, transformers.read.transformMemberExpression);
       },
 
-      //These will always be reads.
-      //CallExpressions under db writes would have been handled in ExpressionStatement
-
+      //The most common type of db operations
+      // eg: db.todos.filter(t => t.assignee === "me")
       CallExpression(path) {
-        analyzeNodeType(path, [dbReads.analyzeCallExpression]);
+        transformPath(path, analyzers.read.analyzeCallExpression, transformers.read.transformCallExpression);
       }
 
     }

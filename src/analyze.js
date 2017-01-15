@@ -1,14 +1,23 @@
+function mustAnalyze(path, isRoot, state, config) {
+  return isRoot(path, state, config) ||
+    (
+      path.isCallExpression() ? mustAnalyze(path.get("callee").get("object"), isRoot, state, config) :
+      path.isMemberExpression() ? mustAnalyze(path.get("object"), isRoot, state, config) :
+      false
+    )
+}
+
 function throwIncorrectASTError(path, analyzedDefinitionIds, parentPath) {
   console.log(analyzedDefinitionIds, parentPath.node, ">>>>>");
   throw new Error("GOGO FIXME");
 }
 
-function analyze(path, nodeDefinitionId, analyzedDefinitionIds, nodeDefinitions, config) {
+function analyze(path, nodeDefinitionId, analyzedDefinitionIds, nodeDefinitions, state, config) {
 
   function analyzeParents(path, nodeDefinitionIds = []) {
     if (nodeDefinitionIds.length) {
       const [nodeDefinitionId, ...rest] = nodeDefinitionIds;
-      return analyze(path, nodeDefinitionId, analyzedDefinitionIds.concat(nodeDefinitionId), nodeDefinitions, config) || analyzeParents(path, rest);
+      return analyze(path, nodeDefinitionId, analyzedDefinitionIds.concat(nodeDefinitionId), nodeDefinitions, state, config) || analyzeParents(path, rest);
     }
   }
 
@@ -17,7 +26,7 @@ function analyze(path, nodeDefinitionId, analyzedDefinitionIds, nodeDefinitions,
   const [isValid, getParentAndArgs] =
     nodeDefinition.type === "predicate" ?
       [
-        nodeDefinition.predicate(path, config),
+        nodeDefinition.predicate(path, state, config),
         () => [
           nodeDefinition.getParentPath ? nodeDefinition.getParentPath(path) : undefined,
           nodeDefinition.args(path)
@@ -69,13 +78,13 @@ function analyze(path, nodeDefinitionId, analyzedDefinitionIds, nodeDefinitions,
     2. AST which we should skip, since we can't find the "root" node.
     The mustAnalyze predicate decides if an AST is (1) or (2)
 */
-export default function(nodeDefinitions, mustAnalyze) {
-  return function(path, nodeDefinitionIds, config) {
-    if (mustAnalyze(path, config)) {
+export default function(nodeDefinitions, isRoot) {
+  return function(path, nodeDefinitionIds, state, config) {
+    if (mustAnalyze(path, isRoot, state, config)) {
       const result = (function f(args) {
         if (args.length) {
           const [nodeDefinitionId, ...rest] = args;
-          return analyze(path, nodeDefinitionId, [], nodeDefinitions, config) || f(rest);
+          return analyze(path, nodeDefinitionId, [], nodeDefinitions, state, config) || f(rest);
         }
       })(nodeDefinitionIds);
 

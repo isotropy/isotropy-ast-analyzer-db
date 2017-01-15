@@ -65,21 +65,23 @@ const nodeDefinitions = [
   }
 ];
 
-function isRoot(path, config) {
-  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier;
+
+
+function isRoot(path, state, config) {
+  if (config.identifiers) {
+    return path.isMemberExpression() && path.get("object").isIdentifier() && config.identifiers.includes(path.node.object.name);
+  } else {
+
+  }
 }
 
-function getRootArgs(path, config) {
-  return path.node.property.name;
-}
-
-function mustAnalyze(path, config) {
-  return true;
+function getRootArgs(path, state, config) {
+  return { db: path.node.object.name, collection: path.node.property.name };
 }
 
 const analyzer = makeAnalyzer(
   nodeDefinitions,
-  mustAnalyze
+  isRoot
 );
 
 /*
@@ -92,8 +94,8 @@ const analyzer = makeAnalyzer(
   //db.todos.sort()
 */
 
-export function analyzeCallExpression(path, config) {
-  return analyzer(path, ["filter", "map", "slice", "sort"], config)
+export function analyzeCallExpression(path, state, config) {
+  return analyzer(path, ["filter", "map", "slice", "sort"], state, config);
 }
 
 
@@ -103,8 +105,8 @@ export function analyzeCallExpression(path, config) {
   No more chanining is possible.
 */
 
-export function analyzeMemberExpression(path, config) {
-  return analyzer(path, ["root", "length"], config)
+export function analyzeMemberExpression(path, state, config) {
+  return analyzer(path, ["root", "length"], state, config);
 }
 
 
@@ -112,7 +114,7 @@ export function analyzeMemberExpression(path, config) {
   db.todos.filter(...)
 */
 
-function getFilterArgs(path, config) {
+function getFilterArgs(path, state, config) {
   const fnExpr = path[0];
   assertUnaryArrowFunction(fnExpr);
   return fnExpr.get("body").node;
@@ -123,7 +125,7 @@ function getFilterArgs(path, config) {
   db.todos.map(...)
 */
 
-function getMapArgs(path, config) {
+function getMapArgs(path, state, config) {
   const fnExpr = path[0];
 
   assertUnaryArrowFunction(fnExpr);
@@ -155,7 +157,7 @@ function getMapArgs(path, config) {
   db.todos.filter(...).slice(...)
 */
 
-function getSliceArgs(path, config) {
+function getSliceArgs(path, state, config) {
   return {
     from: path[0].node.value,
     to: path[1].node.value,
@@ -172,7 +174,7 @@ function getSliceArgs(path, config) {
   db.todos.sort((x, y) => x.f1 > y.f1 || (x.f1 === y.f1 && x.f2 > y.f2))
 */
 
-function getSortArgs(path, config) {
+function getSortArgs(path, state, config) {
   const fnExpr = path[0];
   assertBinaryArrowFunction(fnExpr);
 

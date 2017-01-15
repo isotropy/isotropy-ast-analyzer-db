@@ -4,8 +4,9 @@ function assertQuery(query) {
   }
 }
 
-export function createQueryRoot(collection) {
-  return { type: "query", collection };
+export function createQueryRoot(args) {
+  const { db, collection } = args;
+  return { type: "query", db, collection };
 }
 
 export function createQuery(name, props, source) {

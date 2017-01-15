@@ -1,14 +1,30 @@
 import parserDb from "../";
 
-export default function() {
+export default function(subType) {
   let _query;
 
-  function transformPath(path, query) {
-    _query = query;
+  const transformers = {
+    read: {
+      transformCallExpression(path, query) {
+        _query = query;
+      },
+      transformMemberExpression(path, query) {
+        _query = query;
+      }
+    },
+    write: {
+      transformAssignmentExpression(path, query) {
+        _query = query;
+      }
+    }
   }
 
   return {
-    plugin: parserDb(transformPath, { identifier: "db" }),
+    plugin: parserDb(
+      transformers, subType === "simple" ?
+        { identifiers: ["db"] } :
+        { clientPackageName: 'isotropy-mongodb-client' }
+      ),
     getResult: () => {
       return _query;
     }
