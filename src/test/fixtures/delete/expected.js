@@ -1,5 +1,6 @@
 module.exports = {
   type: "delete",
+  db: "db",
   collection: "todos",
   predicate: {
     "type": "LogicalExpression",

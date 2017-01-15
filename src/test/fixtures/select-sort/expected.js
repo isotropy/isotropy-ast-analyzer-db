@@ -31,7 +31,8 @@ module.exports = {
     },
     source: {
       type: "query",
-      collection: "todos",
-    },
+      db: "db",
+      collection: "todos"
+    }
   }
 }

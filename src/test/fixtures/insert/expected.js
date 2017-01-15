@@ -1,5 +1,6 @@
 module.exports = {
   type: "insert",
+  db: "db",
   collection: "todos",
   items: {
     "type": "ObjectExpression",

@@ -5,10 +5,11 @@ import util from "util";
 
 import Error from "isotropy-error";
 
-import * as queryable from "./queryable";
-import makeAnalyzer from "./analyze";
+import * as dbCommand from "../db-command";
+import makeAnalyzer from "../analyze-chain";
+
 import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
-  assertUnaryArrowFunction, assertBinaryArrowFunction } from "./ast-asserts";
+  assertUnaryArrowFunction, assertBinaryArrowFunction } from "../ast-asserts";
 
 /*
   The read visitor handles operations where we don't mutate the db collection.
@@ -21,7 +22,7 @@ const nodeDefinitions = [
     id: "root",
     type: "predicate",
     predicate: isRoot,
-    builder: queryable.createQueryRoot,
+    builder: dbCommand.createCollection,
     args: getRootArgs
   },
   {
@@ -29,7 +30,7 @@ const nodeDefinitions = [
     name: "filter",
     type: "CallExpression",
     follows: ["root", "sort"],
-    builder: queryable.filter,
+    builder: dbCommand.filter,
     args: getFilterArgs
   },
   {
@@ -37,7 +38,7 @@ const nodeDefinitions = [
     name: "map",
     type: "CallExpression",
     follows: ["root", "filter", "sort", "slice"],
-    builder: queryable.map,
+    builder: dbCommand.map,
     args: getMapArgs,
   },
   {
@@ -45,7 +46,7 @@ const nodeDefinitions = [
     name: "slice",
     type: "CallExpression",
     follows: ["root", "filter", "sort", "map"],
-    builder: queryable.slice,
+    builder: dbCommand.slice,
     args: getSliceArgs,
   },
   {
@@ -53,7 +54,7 @@ const nodeDefinitions = [
     name: "sort",
     type: "CallExpression",
     follows: ["root", "filter"],
-    builder: queryable.sort,
+    builder: dbCommand.sort,
     args: getSortArgs,
   },
   {
@@ -61,22 +62,35 @@ const nodeDefinitions = [
     name: "length",
     type: "MemberExpression",
     follows: ["root", "filter"],
-    builder: queryable.length,
+    builder: dbCommand.length,
   }
 ];
 
 
 
 function isRoot(path, state, config) {
-  if (config.identifiers) {
-    return path.isMemberExpression() && path.get("object").isIdentifier() && config.identifiers.includes(path.node.object.name);
-  } else {
-
-  }
+  return path.isMemberExpression() && path.get("object").isIdentifier() ?
+    (
+      config.identifiers ?
+        config.identifiers.includes(path.node.object.name) :
+        state.rootDeclarations.some(
+          ref => ref.scope.bindings[path.node.object.name] &&
+            ref.scope.bindings[path.node.object.name].referencePaths.some(p => p.node === path.node.object)
+        )
+    ) :
+    false;
 }
 
 function getRootArgs(path, state, config) {
-  return { db: path.node.object.name, collection: path.node.property.name };
+  if (config.identifiers) {
+    return { db: path.node.object.name, collection: path.node.property.name };
+  } else {
+    const rootDeclaration = state.rootDeclarations.find(ref =>
+      ref.scope.bindings[path.node.object.name] &&
+      ref.scope.bindings[path.node.object.name].referencePaths.some(p => p.node === path.node.object))
+    const db = rootDeclaration.node.init.arguments[0].value;
+    return { db: path.node.object.name, collection: path.node.property.name }
+  }
 }
 
 const analyzer = makeAnalyzer(
@@ -101,7 +115,7 @@ export function analyzeCallExpression(path, state, config) {
 
 /*
   db.todos.filter().length
-  or generally, a property accessor you attach at the end of a queryable chain.
+  or generally, a property accessor you attach at the end of a dbCommand chain.
   No more chanining is possible.
 */
 

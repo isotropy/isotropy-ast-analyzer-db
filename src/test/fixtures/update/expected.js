@@ -1,5 +1,6 @@
 module.exports = {
   type: "update",
+  db: "db",
   collection: "todos",
   fields: {
     "0": {

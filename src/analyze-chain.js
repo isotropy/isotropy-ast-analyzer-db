@@ -29,7 +29,7 @@ function analyze(path, nodeDefinitionId, analyzedDefinitionIds, nodeDefinitions,
         nodeDefinition.predicate(path, state, config),
         () => [
           nodeDefinition.getParentPath ? nodeDefinition.getParentPath(path) : undefined,
-          nodeDefinition.args(path)
+          nodeDefinition.args(path, state, config)
         ]
       ] :
     nodeDefinition.type === "CallExpression" && path.isCallExpression() && path.node.callee.property.name === nodeDefinition.name ?

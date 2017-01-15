@@ -1,7 +1,6 @@
-import * as expressions from "./parser-expressions";
-import * as queryable from "./queryable";
+import * as dbCommand from "./db-command";
 import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
-  assertUnaryArrowFunction, assertBinaryArrowFunction } from "./ast-asserts";
+  assertUnaryArrowFunction, assertBinaryArrowFunction } from "../ast-asserts";
 
 /*
   The write visitor handles operations where we mutate the db collection.
