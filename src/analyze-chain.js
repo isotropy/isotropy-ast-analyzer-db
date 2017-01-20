@@ -13,7 +13,6 @@ function throwIncorrectASTError(path, analyzedDefinitionIds, parentPath) {
 }
 
 function analyze(path, nodeDefinitionId, analyzedDefinitionIds, nodeDefinitions, state, config) {
-
   function analyzeParents(path, nodeDefinitionIds = []) {
     if (nodeDefinitionIds.length) {
       const [nodeDefinitionId, ...rest] = nodeDefinitionIds;

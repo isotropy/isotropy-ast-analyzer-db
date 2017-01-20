@@ -1,34 +1,37 @@
 module.exports = {
   type: "insert",
-  db: "db",
-  collection: "todos",
   items: {
-    "type": "ObjectExpression",
-    "properties": {
-      "0": {
-        "type": "ObjectProperty",
-        "method": false,
-        "key": {
+    type: "ObjectExpression",
+    properties: [
+      {
+        type: "ObjectProperty",
+        method: false,
+        key: {
           "type": "Identifier",
           "name": "title"
         },
-        "value": {
-          "type": "Identifier",
-          "name": "title"
+        value: {
+          type: "Identifier",
+          name: "title"
         }
       },
-      "1": {
-        "type": "ObjectProperty",
-        "method": false,
-        "key": {
-          "type": "Identifier",
-          "name": "assignee"
+      {
+        type: "ObjectProperty",
+        method: false,
+        key: {
+          type: "Identifier",
+          name: "assignee"
         },
-        "value": {
-          "type": "Identifier",
-          "name": "assignee"
+        value: {
+          type: "Identifier",
+          name: "assignee"
         }
       }
-    }
+    ]
+  },
+  source: {
+    type: "query",
+    db: "db",
+    collection: "todos"
   }
 }

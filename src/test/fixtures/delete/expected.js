@@ -1,7 +1,5 @@
 module.exports = {
-  type: "delete",
-  db: "db",
-  collection: "todos",
+  type: "remove",
   predicate: {
     "type": "LogicalExpression",
     "left": {
@@ -43,5 +41,10 @@ module.exports = {
         "name": "title"
       }
     }
+  },
+  source: {
+    type: "query",
+    db: "db",
+    collection: "todos"
   }
 }

@@ -12,7 +12,7 @@ export function createValue(name, props, source) {
 }
 
 export function createModification(name, props, source) {
-  return { type: "modification", method: name, ...props, source };
+  return { type: name, ...props, source };
 }
 
 export function filter(command, predicate) {
@@ -41,8 +41,8 @@ export function insert(command, items) {
 }
 
 export function update(command, args) {
-  const { update, predicate } = args;
-  return createModification("update", { update, predicate }, command)
+  const { fields, predicate } = args;
+  return createModification("update", { fields, predicate }, command)
 }
 
 export function remove(command, predicate) {

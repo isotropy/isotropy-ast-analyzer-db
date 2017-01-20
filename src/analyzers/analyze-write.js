@@ -57,7 +57,7 @@ export function analyzeAssignmentExpression(path, state, config) {
     path.isAssignmentExpression() &&
     rootAnalyzer.isRoot(path.get("left"), state, config)
   ) {
-    return analyzer(path, ["insert", "update", "remove"], state, config);
+    return analyzer(path.get("right"), ["insert", "update", "remove"], state, config);
   }
 }
 
@@ -93,11 +93,9 @@ function getUpdateArgs(path) {
       throw new Error(`In the ternary expression, the consequent (1st item) should be the updated item, and alternate (2nd item) should be unmodified.`);
     }
 
-    Object.keys(consequent.get("properties"))
-
     return {
       predicate: body.get("test").node,
-      fields: consequent.get("properties").node
+      fields: consequent.get("properties").map(i => i.node)
     };
 
   } else {

@@ -13,7 +13,7 @@ function clean(obj) {
     return obj;
   } else {
     if (Array.isArray(obj)) {
-      return obj.concat();
+      return obj.map(o => clean(o))
     } else {
       const newObj = {};
       for (const key in obj) {
@@ -46,14 +46,14 @@ describe("isotropy-parser-db", () => {
 
   const tests = [
     ['count', 'count'],
-    //['delete', 'delete'],
-    // ['insert', 'insert'],
+    ['delete', 'delete'],
+    ['insert', 'insert'],
     ['select', 'select'],
     ['select-all', 'select-all'],
     ['select-fields', 'select-fields'],
     ['select-slice', 'select-slice'],
     ['select-sort', 'select-sort'],
-    //['update', 'update'],
+    ['update', 'update'],
     ['import', 'import', { simple: false }],
   ];
 
