@@ -54,7 +54,8 @@ describe("isotropy-parser-db", () => {
     ['select-slice', 'select-slice'],
     ['select-sort', 'select-sort'],
     ['update', 'update'],
-    ['import', 'import', { simple: false }],
+    ['import-select', 'import-select', { simple: false }],
+    ['import-update', 'import-update', { simple: false }],
   ];
 
   for (const test of tests) {
