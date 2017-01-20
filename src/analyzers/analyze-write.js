@@ -1,4 +1,8 @@
-import * as dbCommand from "./db-command";
+import Error from "isotropy-error";
+
+import * as dbCommand from "../db-command";
+import * as rootAnalyzer from "./analyze-root";
+
 import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
   assertUnaryArrowFunction, assertBinaryArrowFunction } from "../ast-asserts";
 
@@ -8,21 +12,21 @@ import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUse
     inserts, updates, deletes etc.
 */
 
-function isCollection(path, config) {
+function isCollection(path, state, config) {
   return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier;
 }
 
-function parseCollection(path, config) {
+function parseCollection(path, state, config) {
   return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier ?
     path.node.property.name :
     undefined;
 }
 
-function isRoot(path, config) {
+function isRoot(path, state, config) {
   return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier;
 }
 
-function getRootArgs(path, config) {
+function getRootArgs(path, state, config) {
   return path.node.property.name;
 }
 
@@ -32,9 +36,19 @@ const analyzer = makeAnalyzer(
 );
 
 
-export function analyzeAssignmentExpression(path, config) {
-  if (path.isAssignmentExpression() && isRoot(path.get("left"), config)) {
+export function analyzeAssignmentExpression(path, state, config) {
+  if (
+    path.isAssignmentExpression() &&
+    rootAnalyzer.isRoot(path.get("left"), state, config)
+  ) {
     const rhs = path.get("right");
+    if (rhs.isCallExpression() && ["concat", "map", "filter"].includes(rhs.node.callee.property.name)) {
+      if (rhs.node.callee.property.name === "concat") {
+        return 
+      }
+    } else {
+      throw new Error("Database write must be with a concat(), map() or filter().")
+    }
   }
 }
 
@@ -81,7 +95,7 @@ function getUpdateArgs(path) {
   }
 }
 
-function parseDelete(path, config) {
+function parseDelete(path, state, config) {
   return path.isCallExpression() && path.node.callee.property.name === "filter" ?
     expressions.any(
       [() => parseCollection(path.get("callee").get("object"), config)],
@@ -91,7 +105,7 @@ function parseDelete(path, config) {
 }
 
 
-function getDeleteArgs(path, config) {
+function getDeleteArgs(path, state, config) {
   const fnExpr = path[0];
   assertUnaryArrowFunction(fnExpr)
 

@@ -43,9 +43,9 @@ export default function(transformers, config) {
       //Reads can be assignments as well
       //  eg: foo.bar = db.todos.filter(...)
 
-      // AssignmentExpression(path) {
-      //   transformPath(path, analyzers.write.analyzeAssignmentExpression, transformers.write.transformAssignmentExpression);
-      // },
+      AssignmentExpression(path) {
+        transformPath(path, analyzers.write.analyzeAssignmentExpression, transformers.write.transformAssignmentExpression);
+      },
 
       //Db ops which masquerade as properties
       //  eg: db.todos.length

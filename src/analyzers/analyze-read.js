@@ -2,11 +2,11 @@ import template from "babel-template";
 import * as t from "babel-types";
 import generate from "babel-generator";
 import util from "util";
-
 import Error from "isotropy-error";
 
-import * as dbCommand from "../db-command";
 import makeAnalyzer from "../analyze-chain";
+import * as rootAnalyzer from "./analyze-root";
+import * as dbCommand from "../db-command";
 
 import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
   assertUnaryArrowFunction, assertBinaryArrowFunction } from "../ast-asserts";
@@ -21,9 +21,9 @@ const nodeDefinitions = [
   {
     id: "root",
     type: "predicate",
-    predicate: isRoot,
+    predicate: rootAnalyzer.isRoot,
     builder: dbCommand.createCollection,
-    args: getRootArgs
+    args: rootAnalyzer.getRootArgs
   },
   {
     id: "filter",
