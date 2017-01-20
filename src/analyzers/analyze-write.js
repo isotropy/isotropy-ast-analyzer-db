@@ -1,54 +1,63 @@
 import Error from "isotropy-error";
 
-import * as dbCommand from "../db-command";
+import makeAnalyzer from "../analyze-chain";
 import * as rootAnalyzer from "./analyze-root";
+import * as dbStatements from "../db-statements";
 
 import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
   assertUnaryArrowFunction, assertBinaryArrowFunction } from "../ast-asserts";
 
 /*
-  The write visitor handles operations where we mutate the db collection.
+  The write analyzer handles operations where we mutate the db collection.
   eg:
     inserts, updates, deletes etc.
 */
 
-function isCollection(path, state, config) {
-  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier;
-}
-
-function parseCollection(path, state, config) {
-  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier ?
-    path.node.property.name :
-    undefined;
-}
-
-function isRoot(path, state, config) {
-  return path.isMemberExpression() && path.get("object").isIdentifier() && path.node.object.name === config.identifier;
-}
-
-function getRootArgs(path, state, config) {
-  return path.node.property.name;
-}
+const nodeDefinitions = [
+  {
+    id: "root",
+    type: "predicate",
+    predicate: rootAnalyzer.isRoot,
+    builder: dbStatements.createCollection,
+    args: rootAnalyzer.getRootArgs
+  },
+  {
+    id: "insert",
+    name: "concat",
+    type: "CallExpression",
+    follows: ["root"],
+    builder: dbStatements.insert,
+    args: getInsertArgs
+  },
+  {
+    id: "update",
+    name: "map",
+    type: "CallExpression",
+    follows: ["root"],
+    builder: dbStatements.update,
+    args: getUpdateArgs
+  },
+  {
+    id: "remove",
+    name: "filter",
+    type: "CallExpression",
+    follows: ["root"],
+    builder: dbStatements.remove,
+    args: getRemoveArgs
+  },
+];
 
 const analyzer = makeAnalyzer(
   nodeDefinitions,
-  isRoot
+  rootAnalyzer.isRoot
 );
-
 
 export function analyzeAssignmentExpression(path, state, config) {
   if (
     path.isAssignmentExpression() &&
     rootAnalyzer.isRoot(path.get("left"), state, config)
   ) {
-    const rhs = path.get("right");
-    if (rhs.isCallExpression() && ["concat", "map", "filter"].includes(rhs.node.callee.property.name)) {
-      if (rhs.node.callee.property.name === "concat") {
-        return 
-      }
-    } else {
-      throw new Error("Database write must be with a concat(), map() or filter().")
-    }
+    return analyzer(path, ["insert", "update", "remove"], state, config);
   }
 }
 
@@ -56,6 +65,7 @@ export function analyzeAssignmentExpression(path, state, config) {
 function getInsertArgs(path) {
   return path[0].node;
 }
+
 
 function getUpdateArgs(path) {
   const fnExpr = path[0];
@@ -95,17 +105,8 @@ function getUpdateArgs(path) {
   }
 }
 
-function parseDelete(path, state, config) {
-  return path.isCallExpression() && path.node.callee.property.name === "filter" ?
-    expressions.any(
-      [() => parseCollection(path.get("callee").get("object"), config)],
-      collection => ({ type: "delete", collection, predicate: getDeleteArgs(path.get("arguments"), config) }),
-    ) :
-    undefined;
-}
 
-
-function getDeleteArgs(path, state, config) {
+function getRemoveArgs(path, state, config) {
   const fnExpr = path[0];
   assertUnaryArrowFunction(fnExpr)
 

@@ -1,4 +1,4 @@
-import dbCommand from "../db-command";
+import * as dbStatements from "../db-statements";
 
 export function isRoot(path, state, config) {
   return path.isMemberExpression() && path.get("object").isIdentifier() ?
@@ -21,6 +21,6 @@ export function getRootArgs(path, state, config) {
       ref.scope.bindings[path.node.object.name] &&
       ref.scope.bindings[path.node.object.name].referencePaths.some(p => p.node === path.node.object))
     const db = rootDeclaration.node.init.arguments[0].value;
-    return dbCommand.createCollection({ db: path.node.object.name, collection: path.node.property.name });
+    return dbStatements.createCollection({ db: path.node.object.name, collection: path.node.property.name });
   }
 }

@@ -1,18 +1,14 @@
-import template from "babel-template";
-import * as t from "babel-types";
-import generate from "babel-generator";
-import util from "util";
 import Error from "isotropy-error";
 
 import makeAnalyzer from "../analyze-chain";
 import * as rootAnalyzer from "./analyze-root";
-import * as dbCommand from "../db-command";
+import * as dbStatements from "../db-statements";
 
 import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
   assertUnaryArrowFunction, assertBinaryArrowFunction } from "../ast-asserts";
 
 /*
-  The read visitor handles operations where we don't mutate the db collection.
+  The read analyzer handles operations where we don't mutate the db collection.
   eg:
     selects, count, map etc.
 */
@@ -22,7 +18,7 @@ const nodeDefinitions = [
     id: "root",
     type: "predicate",
     predicate: rootAnalyzer.isRoot,
-    builder: dbCommand.createCollection,
+    builder: dbStatements.createCollection,
     args: rootAnalyzer.getRootArgs
   },
   {
@@ -30,7 +26,7 @@ const nodeDefinitions = [
     name: "filter",
     type: "CallExpression",
     follows: ["root", "sort"],
-    builder: dbCommand.filter,
+    builder: dbStatements.filter,
     args: getFilterArgs
   },
   {
@@ -38,7 +34,7 @@ const nodeDefinitions = [
     name: "map",
     type: "CallExpression",
     follows: ["root", "filter", "sort", "slice"],
-    builder: dbCommand.map,
+    builder: dbStatements.map,
     args: getMapArgs,
   },
   {
@@ -46,7 +42,7 @@ const nodeDefinitions = [
     name: "slice",
     type: "CallExpression",
     follows: ["root", "filter", "sort", "map"],
-    builder: dbCommand.slice,
+    builder: dbStatements.slice,
     args: getSliceArgs,
   },
   {
@@ -54,7 +50,7 @@ const nodeDefinitions = [
     name: "sort",
     type: "CallExpression",
     follows: ["root", "filter"],
-    builder: dbCommand.sort,
+    builder: dbStatements.sort,
     args: getSortArgs,
   },
   {
@@ -62,40 +58,13 @@ const nodeDefinitions = [
     name: "length",
     type: "MemberExpression",
     follows: ["root", "filter"],
-    builder: dbCommand.length,
+    builder: dbStatements.length,
   }
 ];
 
-
-
-function isRoot(path, state, config) {
-  return path.isMemberExpression() && path.get("object").isIdentifier() ?
-    (
-      config.identifiers ?
-        config.identifiers.includes(path.node.object.name) :
-        state.rootDeclarations.some(
-          ref => ref.scope.bindings[path.node.object.name] &&
-            ref.scope.bindings[path.node.object.name].referencePaths.some(p => p.node === path.node.object)
-        )
-    ) :
-    false;
-}
-
-function getRootArgs(path, state, config) {
-  if (config.identifiers) {
-    return { db: path.node.object.name, collection: path.node.property.name };
-  } else {
-    const rootDeclaration = state.rootDeclarations.find(ref =>
-      ref.scope.bindings[path.node.object.name] &&
-      ref.scope.bindings[path.node.object.name].referencePaths.some(p => p.node === path.node.object))
-    const db = rootDeclaration.node.init.arguments[0].value;
-    return { db: path.node.object.name, collection: path.node.property.name }
-  }
-}
-
 const analyzer = makeAnalyzer(
   nodeDefinitions,
-  isRoot
+  rootAnalyzer.isRoot
 );
 
 /*
@@ -115,7 +84,7 @@ export function analyzeCallExpression(path, state, config) {
 
 /*
   db.todos.filter().length
-  or generally, a property accessor you attach at the end of a dbCommand chain.
+  or generally, a property accessor you attach at the end of a query chain.
   No more chanining is possible.
 */
 
