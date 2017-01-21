@@ -8,6 +8,7 @@
   "dependencies": {
     "babel-core": "^6.18.2",
     "babel-preset-stage-2": "^6.18.0",
+    "ast-crumbs": "0.0.1",
     "isotropy-error": "^0.0.1"
   },
   "devDependencies": {
