@@ -5,6 +5,7 @@
   "scripts": {
     "test": "mocha dist/test/test.js"
   },
+  "main": "dist/isotropy-parser-db",
   "dependencies": {
     "babel-core": "^6.18.2",
     "babel-preset-stage-2": "^6.18.0",
