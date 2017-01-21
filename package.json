@@ -1,11 +1,11 @@
 {
-  "name": "isotropy-parser-db",
+  "name": "isotropy-ast-analyzer-db",
   "version": "0.0.9",
   "author": "Jeswin<jeswinpk@agilehead.com>",
   "scripts": {
     "test": "mocha dist/test/test.js"
   },
-  "main": "dist/isotropy-parser-db",
+  "main": "dist/isotropy-ast-analyzer-db",
   "dependencies": {
     "babel-core": "^6.18.2",
     "babel-preset-stage-2": "^6.18.0",

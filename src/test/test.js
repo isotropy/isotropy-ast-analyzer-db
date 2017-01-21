@@ -26,7 +26,7 @@ function clean(obj) {
   }
 }
 
-describe("isotropy-parser-db", () => {
+describe("isotropy-ast-analyzer-db", () => {
   function run([description, dir, opts]) {
     it(`${description}`, () => {
       const fixturePath = path.resolve(__dirname, 'fixtures', dir, `fixture.js`);

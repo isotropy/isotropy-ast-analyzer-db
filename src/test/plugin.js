@@ -1,4 +1,4 @@
-import parserDb from "../isotropy-parser-db";
+import parserDb from "../isotropy-ast-analyzer-db";
 
 export default function(opts) {
   let _analysis;
