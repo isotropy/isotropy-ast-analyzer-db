@@ -1,5 +1,3 @@
-import Error from "isotropy-error";
-
 import makeAnalyzer from "ast-crumbs";
 import * as rootAnalyzer from "./analyze-root";
 import * as dbStatements from "../db-statements";

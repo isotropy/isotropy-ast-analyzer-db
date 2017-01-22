@@ -1,4 +1,3 @@
-
 import should from "should";
 import * as babel from "babel-core";
 import fs from "fs";
