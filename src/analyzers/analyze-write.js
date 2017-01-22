@@ -2,8 +2,8 @@ import makeAnalyzer from "ast-crumbs";
 import * as rootAnalyzer from "./analyze-root";
 import * as dbStatements from "../db-statements";
 
-import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
-  assertUnaryArrowFunction, assertBinaryArrowFunction } from "../ast-asserts";
+import { ensureArrowFunction, ensureMethodIsNotInTree, ensureMemberExpressionUsesParameter,
+  ensureUnaryArrowFunction, ensureBinaryArrowFunction } from "../isotropy-ast-asserts";
 
 /*
   The write analyzer handles operations where we mutate the db collection.
@@ -67,7 +67,7 @@ function getInsertArgs(path) {
 
 function getUpdateArgs(path) {
   const fnExpr = path[0];
-  assertUnaryArrowFunction(fnExpr)
+  ensureUnaryArrowFunction(fnExpr)
 
   const body = fnExpr.get("body");
   if (body.isConditionalExpression()) {
@@ -104,7 +104,7 @@ function getUpdateArgs(path) {
 
 function getRemoveArgs(path, state, config) {
   const fnExpr = path[0];
-  assertUnaryArrowFunction(fnExpr)
+  ensureUnaryArrowFunction(fnExpr)
 
   const body = fnExpr.get("body");
   //The filter expression should negate the predicate that identifies the item to be deleted.

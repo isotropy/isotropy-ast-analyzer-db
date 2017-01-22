@@ -18,5 +18,6 @@
     "mocha": "*",
     "should": "*",
     "source-map-support": "^0.4.8"
-  }
+  },
+  "license": "MIT"
 }

@@ -4,22 +4,15 @@ import * as analyzers from "./analyzers";
 import * as builtInTransformers from "./transformers";
 
 
-function assertValidConfiguration(config) {
-  if (config.simple) {
-    if (!client.identifier) {
-      throw new Error("Simple configuration requires the config.identifier to be set.")
-    } else {
-      if (!config.clientPackageName) {
-        throw new Error("config.clientPackageName is missing.");
-      } else if (!config.serverPackageName) {
-        throw new Error("config.serverPackageName is missing.");
-      }
-    }
+function ensureValidConfiguration(config) {
+  if (!config.identifiers && !(config.clientPackageName || config.serverPackageName)) {
+    throw new Error("Either a db identifier, or both clientPackageName and serverPackageName has to be set in configuration.");
   }
 }
 
+
 export default function(transformers, config) {
-  assertValidConfiguration(config);
+  ensureValidConfiguration(config);
 
   let state = {};
 

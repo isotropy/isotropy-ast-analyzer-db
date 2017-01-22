@@ -2,8 +2,8 @@ import makeAnalyzer from "ast-crumbs";
 import * as rootAnalyzer from "./analyze-root";
 import * as dbStatements from "../db-statements";
 
-import { assertArrowFunction, assertMethodIsNotInTree, assertMemberExpressionUsesParameter,
-  assertUnaryArrowFunction, assertBinaryArrowFunction } from "../ast-asserts";
+import { ensureArrowFunction, ensureMethodIsNotInTree, ensureMemberExpressionUsesParameter,
+  ensureUnaryArrowFunction, ensureBinaryArrowFunction } from "../isotropy-ast-asserts";
 
 /*
   The read analyzer handles operations where we don't mutate the db collection.
@@ -97,7 +97,7 @@ export function analyzeMemberExpression(path, state, config) {
 
 function getFilterArgs(path, state, config) {
   const fnExpr = path[0];
-  assertUnaryArrowFunction(fnExpr);
+  ensureUnaryArrowFunction(fnExpr);
   return fnExpr.get("body").node;
 }
 
@@ -109,7 +109,7 @@ function getFilterArgs(path, state, config) {
 function getMapArgs(path, state, config) {
   const fnExpr = path[0];
 
-  assertUnaryArrowFunction(fnExpr);
+  ensureUnaryArrowFunction(fnExpr);
 
   const body = fnExpr.get("body");
 
@@ -119,7 +119,7 @@ function getMapArgs(path, state, config) {
 
   const paramName = fnExpr.get("params")[0].get("name").node;
   for (const prop of body.get("properties")) {
-    assertMemberExpressionUsesParameter(
+    ensureMemberExpressionUsesParameter(
       prop.get("value"),
       [paramName]
     );
@@ -157,7 +157,7 @@ function getSliceArgs(path, state, config) {
 
 function getSortArgs(path, state, config) {
   const fnExpr = path[0];
-  assertBinaryArrowFunction(fnExpr);
+  ensureBinaryArrowFunction(fnExpr);
 
   const firstParam = path[0].get("params")[0].node.name;
   const secondParam = path[0].get("params")[1].node.name;
@@ -170,7 +170,7 @@ function getSortArgs(path, state, config) {
     throw new Error("The sort function should use the greater than or less than operator.");
   }
 
-  assertMemberExpressionUsesParameter(
+  ensureMemberExpressionUsesParameter(
     left,
     [firstParam, secondParam]
   );
