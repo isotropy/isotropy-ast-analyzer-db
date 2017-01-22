@@ -33,7 +33,10 @@ describe("isotropy-ast-analyzer-db", () => {
       const pluginInfo = makePlugin(opts || { simple: true });
 
       babel.transformFileSync(fixturePath, {
-        plugins: [[pluginInfo.plugin], "transform-object-rest-spread"],
+        plugins: [
+          [pluginInfo.plugin, (!opts || !opts.import) && { identifiers: ["db"] }],
+          "transform-object-rest-spread"
+        ],
         babelrc: false,
       });
 
@@ -53,8 +56,8 @@ describe("isotropy-ast-analyzer-db", () => {
     ['select-slice', 'select-slice'],
     ['select-sort', 'select-sort'],
     ['update', 'update'],
-    ['import-select', 'import-select', { simple: false }],
-    ['import-update', 'import-update', { simple: false }],
+    ['import-select', 'import-select', { import: true }],
+    ['import-update', 'import-update', { import: true }],
   ];
 
   for (const test of tests) {

@@ -1,6 +1,6 @@
 {
   "name": "isotropy-ast-analyzer-db",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "author": "Jeswin<jeswinpk@agilehead.com>",
   "scripts": {
     "test": "mocha dist/test/test.js"
@@ -10,11 +10,11 @@
     "ast-crumbs": "0.0.1"
   },
   "devDependencies": {
-    "babel-core": "^6.18.2",
-    "babel-plugin-transform-async-to-generator": "^6.16.0",
-    "babel-preset-latest": "^6.16.0",
-    "babel-preset-stage-2": "^6.18.0",
+    "babel-core": "^6.22.1",
+    "babel-plugin-transform-async-to-generator": "^6.22.0",
+    "babel-preset-latest": "^6.22.0",
     "babel-preset-modern-browsers": "^7.0.0",
+    "babel-preset-stage-2": "^6.22.0",
     "mocha": "*",
     "should": "*",
     "source-map-support": "^0.4.8"

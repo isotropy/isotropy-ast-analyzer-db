@@ -12,11 +12,9 @@ function ensureValidConfiguration(config) {
 
 
 export default function(transformers, config) {
-  ensureValidConfiguration(config);
-
   let state = {};
 
-  function transformPath(path, analyze, transform) {
+  function transformPath(path, analyze, transform, config) {
     const analysis = analyze(path, state, config);
     if (analysis) {
       path.skip();
@@ -25,9 +23,13 @@ export default function(transformers, config) {
   }
 
   return {
+    pre(state) {
+      this.config = this.opts ? { ...config, ...this.opts } : config;
+      ensureValidConfiguration(this.config);
+    },
     visitor: {
-      ImportDeclaration(path) {
-        transformPath(path, analyzers.meta.analyzeImportDeclaration, builtInTransformers.meta.transformImportDeclaration);
+      ImportDeclaration(path, state) {
+        transformPath(path, analyzers.meta.analyzeImportDeclaration, builtInTransformers.meta.transformImportDeclaration, this.config);
       },
 
       //Writes will be an ExpressionStatement.
@@ -37,19 +39,19 @@ export default function(transformers, config) {
       //  eg: foo.bar = db.todos.filter(...)
 
       AssignmentExpression(path) {
-        transformPath(path, analyzers.write.analyzeAssignmentExpression, transformers.write.transformAssignmentExpression);
+        transformPath(path, analyzers.write.analyzeAssignmentExpression, transformers.write.transformAssignmentExpression, this.config);
       },
 
       //Db ops which masquerade as properties
       //  eg: db.todos.length
       MemberExpression(path) {
-        transformPath(path, analyzers.read.analyzeMemberExpression, transformers.read.transformMemberExpression);
+        transformPath(path, analyzers.read.analyzeMemberExpression, transformers.read.transformMemberExpression, this.config);
       },
 
       //The most common type of db operations
       // eg: db.todos.filter(t => t.assignee === "me")
       CallExpression(path) {
-        transformPath(path, analyzers.read.analyzeCallExpression, transformers.read.transformCallExpression);
+        transformPath(path, analyzers.read.analyzeCallExpression, transformers.read.transformCallExpression, this.config);
       }
 
     }
