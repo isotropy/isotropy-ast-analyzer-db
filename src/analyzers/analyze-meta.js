@@ -4,4 +4,5 @@ export function analyzeImportDeclaration(path, state, config) {
     const specifier = path.get("specifiers.0").node.local.name;
     state.rootDeclarations = path.scope.bindings[specifier].referencePaths.map(r => r.findParent(path => path.isVariableDeclarator()));
   }
+  return true;
 }
