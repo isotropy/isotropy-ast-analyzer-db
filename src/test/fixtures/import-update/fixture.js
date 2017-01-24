@@ -1,6 +1,6 @@
 import mongodb from "isotropy-mongodb-client";
 
-const todosDb = mongodb("todosDb", {
+const todosDb = mongodb("todosDatabase", {
   todos: [],
 });
 

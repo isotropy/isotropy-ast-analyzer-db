@@ -15,12 +15,12 @@ export function isRoot(path, state, config) {
 
 export function getRootArgs(path, state, config) {
   if (config.identifiers) {
-    return { db: path.node.object.name, collection: path.node.property.name };
+    return { db: path.node.object.name, identifier: path.node.object.name, collection: path.node.property.name };
   } else {
     const rootDeclaration = state.rootDeclarations.find(ref =>
       ref.scope.bindings[path.node.object.name] &&
       ref.scope.bindings[path.node.object.name].referencePaths.some(p => p.node === path.node.object))
     const db = rootDeclaration.node.init.arguments[0].value;
-    return dbStatements.createCollection({ db: path.node.object.name, collection: path.node.property.name });
+    return dbStatements.createCollection({ identifier: path.node.object.name, db, collection: path.node.property.name });
   }
 }

@@ -42,7 +42,8 @@ module.exports = {
   ],
   source: {
     type: "query",
-    db: "todosDb",
+    db: "todosDatabase",
+    identifier: "todosDb",
     collection: "todos"
   }
 }

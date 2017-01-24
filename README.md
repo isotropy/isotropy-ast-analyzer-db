@@ -96,8 +96,8 @@ async function getTodos(who) {
 Use imports to avoid globals. Recommended.
 ```javascript
 import db from "isotropy-db";
-const todosDb = db("todosDb");
-const authDb = db("authDb");
+const todosDb = db("todosDatabase");
+const authDb = db("authDatabase");
 
 async function getTodos(who) {
   return todosDb.todos.filter(todo => todo.assignee === who);
