@@ -1,9 +1,11 @@
 const packageNameUpdater = {
   StringLiteral(path) {
-    path.node.value = this.packageName;
+    if (path.node.value === this.clientPackageName) {
+      path.node.value = this.serverPackageName;
+    }
   }
 }
 
 export function transformImportDeclaration(path, analysis, state, config) {
-  path.traverse(packageNameUpdater, { packageName: config.serverPackageName });
+  path.traverse(packageNameUpdater, { clientPackageName: config.clientPackageName, serverPackageName: config.serverPackageName });
 }
