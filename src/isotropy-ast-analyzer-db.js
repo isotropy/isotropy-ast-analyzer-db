@@ -2,7 +2,7 @@
 
 import * as analyzers from "./analyzers";
 import * as builtInTransformers from "./transformers";
-
+import * as babylon from "babylon";
 
 function ensureValidConfiguration(config) {
   if (!config.identifiers && !(config.clientPackageName || config.serverPackageName)) {
@@ -17,6 +17,13 @@ export default function(transformers, config) {
   function transformPath(path, analyze, transform, config) {
     const analysis = analyze(path, state, config);
     if (analysis) {
+      // if (config.identifiers && !state.importStatementAdded) {
+      //   const header = `import __mongodb from "isotropy-mongodb-server";`
+      //   const importAST = babylon.parse(header).program.body[0];
+      //   const program = path.findParent(path => path.isProgram());
+      //   program.unshiftContainerWithString('body', importAST);
+      //   state.importStatementAdded = true;
+      // }
       path.skip();
       transform(path, analysis, state, config);
     }

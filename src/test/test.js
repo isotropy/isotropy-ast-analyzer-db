@@ -37,6 +37,7 @@ describe("isotropy-ast-analyzer-db", () => {
           [pluginInfo.plugin, (!opts || !opts.import) && { identifiers: ["db"] }],
           "transform-object-rest-spread"
         ],
+        presets: ["babel-preset-es2017"],
         babelrc: false,
       });
 

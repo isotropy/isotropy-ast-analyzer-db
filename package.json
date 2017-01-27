@@ -1,13 +1,16 @@
 {
   "name": "isotropy-ast-analyzer-db",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "author": "Jeswin<jeswinpk@agilehead.com>",
   "scripts": {
     "test": "mocha dist/test/test.js"
   },
   "main": "dist/isotropy-ast-analyzer-db",
   "dependencies": {
-    "ast-crumbs": "0.0.1"
+    "ast-crumbs": "0.0.2",
+    "babel-core": "^6.22.1",
+    "babel-preset-es2016": "^6.22.0",
+    "babel-preset-es2017": "^6.22.0"
   },
   "devDependencies": {
     "babel-core": "^6.22.1",

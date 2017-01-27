@@ -1,9 +1,17 @@
 /*
   Must pass an arrow function.
+  Because some babel presets parse it is a FunctionExpression, we're going to cheat and allow that as well.
+  Ideally, it should only be an ArrowFunctionExpression.
 */
 
+function isTrivialFunction(path) {
+  return path.isFunctionExpression() &&
+    path.node.body &&  path.node.body.body && path.node.body.body.length === 1 &&
+    path.node.body.body[0].type === "ReturnStatement";
+}
+
 export function ensureArrowFunction(path) {
-  if (!path.isArrowFunctionExpression()) {
+  if (!path.isArrowFunctionExpression() && !isTrivialFunction(path)) {
     throw new Error(`Must pass an arrow function. Found ${path.node.type} instead.`)
   }
 }

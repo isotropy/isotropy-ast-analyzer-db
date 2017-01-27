@@ -5,6 +5,8 @@ import * as dbStatements from "../db-statements";
 import { ensureArrowFunction, ensureMethodIsNotInTree, ensureMemberExpressionUsesParameter,
   ensureUnaryArrowFunction, ensureBinaryArrowFunction } from "../isotropy-ast-asserts";
 
+import { getArrowFunctionBody } from "../arrow-function-helper";
+
 /*
   The read analyzer handles operations where we don't mutate the db collection.
   eg:
@@ -98,7 +100,7 @@ export function analyzeMemberExpression(path, state, config) {
 function getFilterArgs(path, state, config) {
   const fnExpr = path[0];
   ensureUnaryArrowFunction(fnExpr);
-  return fnExpr.get("body").node;
+  return getArrowFunctionBody(fnExpr).node;
 }
 
 
@@ -110,8 +112,7 @@ function getMapArgs(path, state, config) {
   const fnExpr = path[0];
 
   ensureUnaryArrowFunction(fnExpr);
-
-  const body = fnExpr.get("body");
+  const body = getArrowFunctionBody(fnExpr);
 
   if (!body.isObjectExpression()) {
     throw new Error("The map expression should return an object.");
@@ -159,13 +160,13 @@ function getSortArgs(path, state, config) {
   const fnExpr = path[0];
   ensureBinaryArrowFunction(fnExpr);
 
-  const firstParam = path[0].get("params")[0].node.name;
-  const secondParam = path[0].get("params")[1].node.name;
+  const firstParam = fnExpr.get("params")[0].node.name;
+  const secondParam = fnExpr.get("params")[1].node.name;
 
-  const left = path[0].get("body").get("left");
-  const right = path[0].get("body").get("right");
+  const left = getArrowFunctionBody(fnExpr).get("left");
+  const right = getArrowFunctionBody(fnExpr).get("right");
 
-  const operator = path[0].get("body").get("operator").node;
+  const operator = getArrowFunctionBody(fnExpr).get("operator").node;
   if (![">", ">=", "<", "<="].includes(operator)) {
     throw new Error("The sort function should use the greater than or less than operator.");
   }

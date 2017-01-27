@@ -5,6 +5,8 @@ import * as dbStatements from "../db-statements";
 import { ensureArrowFunction, ensureMethodIsNotInTree, ensureMemberExpressionUsesParameter,
   ensureUnaryArrowFunction, ensureBinaryArrowFunction } from "../isotropy-ast-asserts";
 
+import { getArrowFunctionBody } from "../arrow-function-helper";
+
 /*
   The write analyzer handles operations where we mutate the db collection.
   eg:
@@ -69,7 +71,7 @@ function getUpdateArgs(path) {
   const fnExpr = path[0];
   ensureUnaryArrowFunction(fnExpr)
 
-  const body = fnExpr.get("body");
+  const body = getArrowFunctionBody(fnExpr);
   if (body.isConditionalExpression()) {
     const firstParam = fnExpr.get("params")[0].node.name;
 
@@ -106,7 +108,7 @@ function getRemoveArgs(path, state, config) {
   const fnExpr = path[0];
   ensureUnaryArrowFunction(fnExpr)
 
-  const body = fnExpr.get("body");
+  const body = getArrowFunctionBody(fnExpr);
   //The filter expression should negate the predicate that identifies the item to be deleted.
   // eg: db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
   if (body.isUnaryExpression() && body.get("operator").node === "!") {
