@@ -32,7 +32,7 @@ describe("isotropy-ast-analyzer-db", () => {
       const expected = require(`./fixtures/${dir}/expected`);
       const pluginInfo = makePlugin(opts || { simple: true });
 
-      babel.transformFileSync(fixturePath, {
+      const babelResult = babel.transformFileSync(fixturePath, {
         plugins: [
           [pluginInfo.plugin, (!opts || !opts.import) && { identifiers: ["db"] }],
           "transform-object-rest-spread"
