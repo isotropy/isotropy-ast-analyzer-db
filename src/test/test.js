@@ -29,8 +29,10 @@ describe("isotropy-ast-analyzer-db", () => {
   function run([description, dir, opts]) {
     it(`${description}`, () => {
       const fixturePath = path.resolve(__dirname, 'fixtures', dir, `fixture.js`);
+      const outputPath = path.resolve(__dirname, 'fixtures', dir, `output.js`);
       const expected = require(`./fixtures/${dir}/expected`);
       const pluginInfo = makePlugin(opts || { simple: true });
+      const output = fs.readFileSync(outputPath).toString().replace(/\n*$/, "");
 
       const babelResult = babel.transformFileSync(fixturePath, {
         plugins: [
@@ -41,19 +43,20 @@ describe("isotropy-ast-analyzer-db", () => {
           sourceType: 'module',
           allowImportExportEverywhere: true
         },
-        presets: ["babel-preset-latest"],
         babelrc: false,
       });
-
       const result = pluginInfo.getResult();
       const actual = clean(result.analysis);
       actual.should.deepEqual(expected);
+      babelResult.code.should.equal(output);
     });
   }
 
   const tests = [
     ['count', 'count'],
     ['delete', 'delete'],
+    ['import-select', 'import-select', { import: true }],
+    ['import-update', 'import-update', { import: true }],
     ['insert', 'insert'],
     ['select', 'select'],
     ['select-all', 'select-all'],
@@ -61,8 +64,6 @@ describe("isotropy-ast-analyzer-db", () => {
     ['select-slice', 'select-slice'],
     ['select-sort', 'select-sort'],
     ['update', 'update'],
-    ['import-select', 'import-select', { import: true }],
-    ['import-update', 'import-update', { import: true }],
   ];
 
   for (const test of tests) {
