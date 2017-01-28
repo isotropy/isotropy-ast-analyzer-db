@@ -14,16 +14,18 @@ function ensureValidConfiguration(config) {
 
 
 export default function(transformers, config) {
-  let state = {};
+  let state = {
+    importsAdded: []
+  };
 
   function transformPath(path, analyze, transform, config) {
     const analysis = analyze(path, state, config);
     if (analysis) {
-      if (config.identifiers && !state.importStatementAdded) {
+      const program = path.findParent(path => path.isProgram());
+      if (config.identifiers && !state.importsAdded.includes(program)) {
         const importAST = template(`import __mongodb from "isotropy-mongodb-server";`, { sourceType: "module" })();
-        const program = path.findParent(path => path.isProgram());
         program.unshiftContainer('body', importAST);
-        state.importStatementAdded = true;
+        state.importsAdded.push(program);
       }
       path.skip();
       transform(path, analysis, state, config);
