@@ -1,6 +1,9 @@
 module.exports = {
-  type: "value",
-  property: "length",
+  type: "query",
+  method: "map",
+  fields: [
+    ["mainAssignee", "assignee"]
+  ],
   source: {
     type: "query",
     db: "db",

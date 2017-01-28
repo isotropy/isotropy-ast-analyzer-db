@@ -58,11 +58,15 @@ describe("isotropy-ast-analyzer-db", () => {
     ['import-select', 'import-select', { import: true }],
     ['import-update', 'import-update', { import: true }],
     ['insert', 'insert'],
+    ['map', 'map'],
     ['select', 'select'],
     ['select-all', 'select-all'],
-    ['select-fields', 'select-fields'],
+    ['select-count', 'select-count'],
+    ['select-map', 'select-map'],
     ['select-slice', 'select-slice'],
     ['select-sort', 'select-sort'],
+    ['slice', 'slice'],
+    ['sort', 'sort'],
     ['update', 'update'],
   ];
 

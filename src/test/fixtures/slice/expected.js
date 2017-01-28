@@ -1,6 +1,8 @@
 module.exports = {
-  type: "value",
-  property: "length",
+  type: "query",
+  method: "slice",
+  from: 10,
+  to: 20,
   source: {
     type: "query",
     db: "db",

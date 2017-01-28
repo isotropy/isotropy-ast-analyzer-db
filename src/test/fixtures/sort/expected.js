@@ -1,6 +1,12 @@
 module.exports = {
-  type: "value",
-  property: "length",
+  type: "query",
+  method: "sort",
+  fields: [
+    {
+      field: "assignee",
+      ascending: true
+    }
+  ],
   source: {
     type: "query",
     db: "db",
