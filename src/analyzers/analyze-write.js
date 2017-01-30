@@ -63,7 +63,7 @@ export function analyzeAssignmentExpression(path, state, config) {
 
 
 function getInsertArgs(path) {
-  return path[0].node;
+  return { items: path[0].node, path };
 }
 
 
@@ -95,7 +95,8 @@ function getUpdateArgs(path) {
 
     return {
       predicate: body.get("test").node,
-      fields: consequent.get("properties").map(i => i.node)
+      fields: consequent.get("properties").map(i => i.node),
+      path
     };
 
   } else {
@@ -112,7 +113,7 @@ function getRemoveArgs(path, state, config) {
   //The filter expression should negate the predicate that identifies the item to be deleted.
   // eg: db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
   if (body.isUnaryExpression() && body.get("operator").node === "!") {
-    return body.get("argument").node;
+    return { predicate: body.get("argument").node, path };
   } else {
     throw new Error(`The filter expression should negate the predicate that identifies the item to be deleted.`);
   }

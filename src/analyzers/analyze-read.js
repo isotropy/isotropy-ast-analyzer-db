@@ -100,7 +100,10 @@ export function analyzeMemberExpression(path, state, config) {
 function getFilterArgs(path, state, config) {
   const fnExpr = path[0];
   ensureUnaryArrowFunction(fnExpr);
-  return getArrowFunctionBody(fnExpr).node;
+  return {
+    predicate: getArrowFunctionBody(fnExpr).node,
+    path
+  }
 }
 
 
@@ -126,12 +129,15 @@ function getMapArgs(path, state, config) {
     );
   }
 
-  return body
-    .get("properties")
-    .map(p => [
-      p.node.key.name,
-      p.node.value.property.name
-    ]);
+  return {
+    fields: body
+      .get("properties")
+      .map(p => [
+        p.node.key.name,
+        p.node.value.property.name
+      ]),
+    path
+  }
 }
 
 
@@ -143,6 +149,7 @@ function getSliceArgs(path, state, config) {
   return {
     from: path[0].node.value,
     to: path[1].node.value,
+    path
   };
 }
 
@@ -191,10 +198,13 @@ function getSortArgs(path, state, config) {
     throw new Error("The sort expression should reference both parameters in the arrow function.")
   }
 
-  return [
-    {
-      field: leftField,
-      ascending: (operator === ">" && firstParam === leftObject) || (operator === "<" && firstParam === rightObject)
-    }
-  ]
+  return {
+    fields: [
+      {
+        field: leftField,
+        ascending: (operator === ">" && firstParam === leftObject) || (operator === "<" && firstParam === rightObject),
+      }
+    ],
+    path
+  }
 }

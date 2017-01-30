@@ -15,36 +15,41 @@ export function createModification(name, props, source) {
   return { type: name, ...props, source };
 }
 
-export function filter(command, predicate) {
-  return createQuery("filter", { predicate }, command);
+export function filter(command, args) {
+  const { predicate, path } = args;
+  return createQuery("filter", { predicate, path }, command);
 }
 
-export function map(command, fields) {
-  return createQuery("map", { fields }, command);
+export function map(command, args) {
+  const { fields, path } = args;
+  return createQuery("map", { fields, path }, command);
 }
 
 export function slice(command, args) {
-  const { from, to } = args;
-  return createQuery("slice", { from, to }, command);
+  const { from, to, path } = args;
+  return createQuery("slice", { from, to, path }, command);
 }
 
-export function sort(command, fields) {
-  return createQuery("sort", { fields }, command);
+export function sort(command, args) {
+  const { fields, path } = args;
+  return createQuery("sort", { fields, path }, command);
 }
 
 export function length(command) {
   return createValue("length", {}, command);
 }
 
-export function insert(command, items) {
-  return createModification("insert", { items }, command)
+export function insert(command, args) {
+  const { items, path } = args;
+  return createModification("insert", { items, path }, command)
 }
 
 export function update(command, args) {
-  const { fields, predicate } = args;
-  return createModification("update", { fields, predicate }, command)
+  const { fields, predicate, path } = args;
+  return createModification("update", { fields, predicate, path }, command)
 }
 
-export function remove(command, predicate) {
-  return createModification("remove", { predicate }, command)
+export function remove(command, args) {
+  const { predicate, path } = args;
+  return createModification("remove", { predicate, path }, command)
 }

@@ -16,7 +16,7 @@ function clean(obj) {
     } else {
       const newObj = {};
       for (const key in obj) {
-        if (!(["start", "end", "loc", "computed", "shorthand", "extra", "__clone"].includes(key))) {
+        if (!(["start", "end", "loc", "computed", "shorthand", "extra", "__clone", "path"].includes(key))) {
           newObj[key] = clean(obj[key]);
         }
       }
