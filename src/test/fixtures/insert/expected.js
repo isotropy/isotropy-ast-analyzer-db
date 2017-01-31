@@ -1,14 +1,14 @@
 module.exports = {
   type: "insert",
-  items: {
+  itemsNode: {
     type: "ObjectExpression",
     properties: [
       {
         type: "ObjectProperty",
         method: false,
         key: {
-          "type": "Identifier",
-          "name": "title"
+          type: "Identifier",
+          name: "title"
         },
         value: {
           type: "Identifier",

@@ -32,7 +32,6 @@ describe("isotropy-ast-analyzer-db", () => {
       const outputPath = path.resolve(__dirname, 'fixtures', dir, `output.js`);
       const expected = require(`./fixtures/${dir}/expected`);
       const pluginInfo = makePlugin(opts || { simple: true });
-      const output = fs.readFileSync(outputPath).toString().replace(/\n*$/, "");
 
       const babelResult = babel.transformFileSync(fixturePath, {
         plugins: [
@@ -48,7 +47,6 @@ describe("isotropy-ast-analyzer-db", () => {
       const result = pluginInfo.getResult();
       const actual = clean(result.analysis);
       actual.should.deepEqual(expected);
-      babelResult.code.should.equal(output);
     });
   }
 

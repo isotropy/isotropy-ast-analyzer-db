@@ -5,23 +5,13 @@ module.exports = {
     type: "query",
     method: "filter",
     predicate: {
-      type: "BinaryExpression",
-      left: {
-        type: "MemberExpression",
-        object: {
-          type: "Identifier",
-          name: "todo"
-        },
-        property: {
-          type: "Identifier",
-          name: "assignee"
-        }
-      },
+      type: "fieldExpression",
       operator: "===",
-      right: {
+      field: "assignee",
+      comparandNode: {
         type: "Identifier",
         name: "who"
-      }
+      },
     },
     source: {
       type: "query",

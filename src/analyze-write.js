@@ -1,11 +1,11 @@
 import makeAnalyzer from "ast-crumbs";
 import * as rootAnalyzer from "./analyze-root";
-import * as dbStatements from "../db-statements";
+import * as dbStatements from "./db-statements";
 
 import { ensureArrowFunction, ensureMethodIsNotInTree, ensureMemberExpressionUsesParameter,
-  ensureUnaryArrowFunction, ensureBinaryArrowFunction } from "../isotropy-ast-asserts";
+  ensureUnaryArrowFunction, ensureBinaryArrowFunction } from "./isotropy-ast-asserts";
 
-import { getArrowFunctionBody } from "../arrow-function-helper";
+import { getArrowFunctionBody } from "./arrow-function-helper";
 
 /*
   The write analyzer handles operations where we mutate the db collection.

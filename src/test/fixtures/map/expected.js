@@ -2,7 +2,10 @@ module.exports = {
   type: "query",
   method: "map",
   fields: [
-    ["mainAssignee", "assignee"]
+    {
+      field: "assignee"
+      newField: "mainAssignee"
+    }
   ],
   source: {
     type: "query",

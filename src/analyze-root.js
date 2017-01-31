@@ -1,4 +1,4 @@
-import * as dbStatements from "../db-statements";
+import * as dbStatements from "./db-statements";
 
 export function isRoot(path, state, config) {
   return path.isMemberExpression() && path.get("object").isIdentifier() ?
