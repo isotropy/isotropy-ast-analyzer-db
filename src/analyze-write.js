@@ -19,8 +19,11 @@ import {
 import {
   getArrowFunctionBody,
   getParameterBindings,
-  createLogicalOrBinaryExpression
 } from "./arrow-function-helper";
+
+import {
+  createLogicalOrBinaryExpression,
+} from "./predicate"
 
 /*
   The write analyzer handles operations where we mutate the db collection.
