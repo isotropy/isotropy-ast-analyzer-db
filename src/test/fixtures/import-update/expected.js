@@ -1,7 +1,7 @@
 module.exports = {
   type: "update",
   predicate: {
-    type: 'fieldExpression',
+    type: 'binaryFieldExpression',
     operator: '===',
     field: "assignee",
     comparandNode: {

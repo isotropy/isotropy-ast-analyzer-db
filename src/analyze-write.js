@@ -2,10 +2,25 @@ import makeAnalyzer from "ast-crumbs";
 import * as rootAnalyzer from "./analyze-root";
 import * as dbStatements from "./db-statements";
 
-import { ensureArrowFunction, ensureMethodIsNotInTree, ensureMemberExpressionUsesParameter,
-  ensureUnaryArrowFunction, ensureBinaryArrowFunction } from "./isotropy-ast-asserts";
+import {
+  ensureArrowFunction,
+  ensureBinaryArrowFunction,
+  ensureConditionalExpression,
+  ensureLogicalOrBinaryExpressionExpression,
+  ensureMemberExpressionUsesParameter,
+  ensureMethodIsNotInTree,
+  ensureNegatedUnaryExpression,
+  ensureObjectExpression,
+  ensureSpreadProperty,
+  ensureUnaryArrowFunction,
+  ensureUnmodifiedParameter,
+} from "./isotropy-ast-asserts";
 
-import { getArrowFunctionBody } from "./arrow-function-helper";
+import {
+  getArrowFunctionBody,
+  getParameterBindings,
+  createLogicalOrBinaryExpression
+} from "./arrow-function-helper";
 
 /*
   The write analyzer handles operations where we mutate the db collection.
@@ -68,53 +83,50 @@ function getInsertArgs(path) {
 
 
 function getUpdateArgs(path) {
-  const fnExpr = path[0];
-  ensureUnaryArrowFunction(fnExpr)
+  const fnPath = path[0];
+  ensureUnaryArrowFunction(fnPath)
 
-  const body = getArrowFunctionBody(fnExpr);
-  if (body.isConditionalExpression()) {
-    const firstParam = fnExpr.get("params")[0].node.name;
+  const body = getArrowFunctionBody(fnPath);
+  ensureConditionalExpression(body);
 
-    const consequent = body.get("consequent");
-    const alternate = body.get("alternate");
+  const [paramBindings] = getParameterBindings(fnPath);
 
-    //In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item
-    // eg: db.todos = db.todos.map(todo => todo.assignee === assignee ? { ...todo, assignee: newAssignee } /* consequent */ : todo /* alternate */)
-    // The consequent should be an ObjectExpression and the spread must be the first property of the consequent.
-    if (!consequent.isObjectExpression()) {
-      throw new Error(`In the ternary expression, the consequent (1st item) should be an ObjectExpression.`)
-    }
+  //In the ternary expression, the consequent (1st item) should be the updated item, and alternate should be the unmodified item
+  // eg: db.todos = db.todos.map(todo => todo.assignee === assignee ? { ...todo, assignee: newAssignee } /* consequent */ : todo /* alternate */)
+  // The consequent should be an ObjectExpression and the spread must be the first property of the consequent.
 
-    if (!consequent.get("properties.0").isSpreadProperty()) {
-      throw new Error(`In the ternary expression, the consequent should be an ObjectExpression and the spread must be the first property of the consequent.`);
-    }
+  const consequent = body.get("consequent");
+  ensureObjectExpression(consequent);
+  ensureSpreadProperty(consequent.get("properties.0"));
 
-    if (!alternate.isIdentifier() || alternate.get("name").node !== firstParam) {
-      throw new Error(`In the ternary expression, the consequent (1st item) should be the updated item, and alternate (2nd item) should be unmodified.`);
-    }
+  const alternate = body.get("alternate");
+  ensureUnmodifiedParameter(alternate, paramBindings);
 
-    return {
-      predicate: body.get("test").node,
-      fields: consequent.get("properties").map(i => i.node),
-      path
-    };
-
-  } else {
-    throw new Error(`The update() method must use a conditional expression. Found ${body.node.type} instead.`);
-  }
+  return {
+    predicate: body.get("test").node,
+    fields: consequent.get("properties").slice(1).map(i => ({
+      field: i.node.key.name,
+      valueNode: i.node.value
+    })),
+    path
+  };
 }
 
 
 function getRemoveArgs(path, state, config) {
-  const fnExpr = path[0];
-  ensureUnaryArrowFunction(fnExpr)
+  const fnPath = path[0];
+  ensureUnaryArrowFunction(fnPath)
 
-  const body = getArrowFunctionBody(fnExpr);
-  //The filter expression should negate the predicate that identifies the item to be deleted.
-  // eg: db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
-  if (body.isUnaryExpression() && body.get("operator").node === "!") {
-    return { predicate: body.get("argument").node, path };
-  } else {
-    throw new Error(`The filter expression should negate the predicate that identifies the item to be deleted.`);
-  }
+  const body = getArrowFunctionBody(fnPath);
+  ensureNegatedUnaryExpression(body);
+
+  const predicatePath = body.get("argument");
+  ensureLogicalOrBinaryExpressionExpression(predicatePath);
+
+  const [paramBindings] = getParameterBindings(fnPath);
+
+  return {
+    predicate: createLogicalOrBinaryExpression(predicatePath, paramBindings),
+    path
+  };
 }

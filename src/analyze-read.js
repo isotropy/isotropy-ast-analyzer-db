@@ -2,10 +2,22 @@ import makeAnalyzer from "ast-crumbs";
 import * as rootAnalyzer from "./analyze-root";
 import * as dbStatements from "./db-statements";
 
-import { ensureArrowFunction, ensureMethodIsNotInTree, ensureMemberExpressionUsesParameter,
-  ensureUnaryArrowFunction, ensureBinaryArrowFunction } from "./isotropy-ast-asserts";
+import {
+  ensureArrowFunction,
+  ensureBinaryArrowFunction,
+  ensureConditionalExpression,
+  ensureLogicalOrBinaryExpressionExpression,
+  ensureMemberExpressionUsesParameter,
+  ensureMethodIsNotInTree,
+  ensureNegatedUnaryExpression,
+  ensureObjectExpression,
+  ensureSpreadProperty,
+  ensureUnaryArrowFunction,
+  ensureUnmodifiedParameter,
+} from "./isotropy-ast-asserts";
 
-import { getArrowFunctionBody } from "./arrow-function-helper";
+import {
+  getArrowFunctionBody } from "./arrow-function-helper";
 
 /*
   The read analyzer handles operations where we don't mutate the db collection.
@@ -98,10 +110,11 @@ export function analyzeMemberExpression(path, state, config) {
 */
 
 function getFilterArgs(path, state, config) {
-  const fnExpr = path[0];
-  ensureUnaryArrowFunction(fnExpr);
+  const fnPath = path[0];
+  ensureUnaryArrowFunction(fnPath);
+
   return {
-    predicate: getArrowFunctionBody(fnExpr).node,
+    predicate: createLogicalOrBinaryExpression(fnPath),
     path
   }
 }
@@ -112,22 +125,16 @@ function getFilterArgs(path, state, config) {
 */
 
 function getMapArgs(path, state, config) {
-  const fnExpr = path[0];
+  const fnPath = path[0];
+  ensureUnaryArrowFunction(fnPath);
+  const [paramBindings] = getParameterBindings(fnPath);
 
-  ensureUnaryArrowFunction(fnExpr);
-  const body = getArrowFunctionBody(fnExpr);
+  const body = getArrowFunctionBody(fnPath);
+  ensureObjectExpression(body);
 
-  if (!body.isObjectExpression()) {
-    throw new Error("The map expression should return an object.");
-  }
-
-  const paramName = fnExpr.get("params")[0].get("name").node;
-  for (const prop of body.get("properties")) {
-    ensureMemberExpressionUsesParameter(
-      prop.get("value"),
-      [paramName]
-    );
-  }
+  const paramName = fnPath.get("params")[0].get("name").node;
+  const values = body.get("properties").map(p => p.get("value"));
+  ensureExpressionsReferenceBindings(values, paramBindings)
 
   return {
     fields: body
@@ -154,6 +161,11 @@ function getSliceArgs(path, state, config) {
 }
 
 
+function memberExpressionReferencesBindings(expr, bindings) {
+  throw new Error("FIXME");
+}
+
+
 /*
   db.todos.filter(...).sort((x, y) => x.f1 > y.f1)
   We only support utterly simple, single-field sorts.
@@ -164,45 +176,27 @@ function getSliceArgs(path, state, config) {
 */
 
 function getSortArgs(path, state, config) {
-  const fnExpr = path[0];
-  ensureBinaryArrowFunction(fnExpr);
+  const fnPath = path[0];
+  ensureBinaryArrowFunction(fnPath);
+  const [param1Bindings, param2Bindings] = getParameterBindings(fnPath);
 
-  const firstParam = fnExpr.get("params")[0].node.name;
-  const secondParam = fnExpr.get("params")[1].node.name;
+  const body = getArrowFunctionBody(fnPath);
+  ensureBinaryExpression(body);
+  ensureBinaryExpressionOperators(body, ["<", ">"]);
 
-  const left = getArrowFunctionBody(fnExpr).get("left");
-  const right = getArrowFunctionBody(fnExpr).get("right");
+  const left = body.get("left");
+  const right = body.get("right");
 
-  const operator = getArrowFunctionBody(fnExpr).get("operator").node;
-  if (![">", ">=", "<", "<="].includes(operator)) {
-    throw new Error("The sort function should use the greater than or less than operator.");
-  }
-
-  ensureMemberExpressionUsesParameter(
-    left,
-    [firstParam, secondParam]
-  );
-
-  const leftField = left.get("property").node.name;
-  const rightField = right.get("property").node.name;
-
-  if (leftField !== rightField) {
-    throw new Error("The sort expression should use the same field.")
-  }
-
-  const leftObject = left.get("object").node.name;
-  const rightObject = right.get("object").node.name;
-
-  const areBothParamsReferenced = [firstParam, secondParam].every(i => [leftObject, rightObject].includes(i));
-  if (!areBothParamsReferenced) {
-    throw new Error("The sort expression should reference both parameters in the arrow function.")
-  }
+  ensureExpressionsUniquelyReferenceAllBindings([left, right], [param1Bindings, param2Bindings])
+  ensureMemberExpressionsReferenceSameProperty([left, right]);
 
   return {
     fields: [
       {
         field: leftField,
-        ascending: (operator === ">" && firstParam === leftObject) || (operator === "<" && firstParam === rightObject),
+        ascending:
+          (operator === ">" && memberExpressionReferencesBindings(left, param1Bindings)) ||
+          (operator === "<" && memberExpressionReferencesBindings(right, param1Bindings)),
       }
     ],
     path

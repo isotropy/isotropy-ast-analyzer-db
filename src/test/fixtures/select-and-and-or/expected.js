@@ -8,7 +8,7 @@ module.exports = {
       type: "logicalExpression",
       operator: "&&",
       left: {
-        type: "fieldExpression",
+        type: "binaryFieldExpression",
         operator: "===",
         field: "priority",
         comparandNode: {
@@ -17,7 +17,7 @@ module.exports = {
         }
       },
       right: {
-        type: "fieldExpression",
+        type: "binaryFieldExpression",
         operator: "===",
         field: "assignee",
         comparandNode: {
@@ -27,7 +27,7 @@ module.exports = {
       }
     },
     right: {
-      type: "fieldExpression",
+      type: "binaryFieldExpression",
       operator: "===",
       field: "priority",
       comparandNode: {

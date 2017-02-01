@@ -2,7 +2,7 @@ module.exports = {
   type: "query",
   method: "filter",
   predicate: {
-    type: "fieldExpression",
+    type: "binaryFieldExpression",
     operator: "===",
     field: "assignee",
     comparandNode: {

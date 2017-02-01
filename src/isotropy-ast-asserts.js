@@ -16,23 +16,6 @@ export function ensureArrowFunction(path) {
   }
 }
 
-/*
-  Function must be an arrow function and have a single parameter.
-*/
-
-export function ensureUnaryArrowFunction(path) {
-  ensureArrowFunction(path);
-  const params = path.get("params");
-  if (params.length !== 1) {
-    throw new Error(`Function must be an arrow function and have a single parameter. Found ${params.length} instead.`)
-  }
-}
-
-
-
-/*
-  Function must have a two parameters.
-*/
 
 export function ensureBinaryArrowFunction(path) {
   ensureArrowFunction(path);
@@ -42,10 +25,43 @@ export function ensureBinaryArrowFunction(path) {
   }
 }
 
+export function ensureBinaryExpressionOperators(path, operators) {
+  const operator = path.get("operator").node;
+  if (!operators.includes(operator)) {
+    throw new Error(`Expected operator to be ${operators.join(" or ")} but got ${operator}.`);
+  }
+}
 
-/*
-  Check if a method call exists in the call chain.
-*/
+
+export function ensureConditionalExpression(path) {
+  if (!path.isConditionalExpression()) {
+    throw new Error(`Expected conditional expression (ternary) but got ${path.type}.`)
+  }
+}
+
+
+export function ensureLogicalOrBinaryExpressionExpression(path) {
+  if (path.type !== "LogicalExpression" && path.type !== "BinaryExpression") {
+    throw new Error(`Expected a LogicalExpression or a BinaryExpression but got ${path.type}.`)
+  }
+}
+
+export function ensureMemberExpression(expression) {
+  if (!expression.isMemberExpression()) {
+    throw new Error(`Expected MemberExpression but got ${expression.type}.`);
+  }
+}
+
+export function ensureMemberExpressionsReferenceSameProperty(expressions) {
+  const fields = expressions.map(e => e.get("property").node.name);
+  if (fields.length) {
+    const name = fields[0];
+    if (!fields.every(f => f === name)) {
+      throw new Error('The expression should use the same fields.')
+    }
+  }
+}
+
 export function ensureMethodIsNotInTree(path, methodName) {
   const callee = path.get("callee");
   if (callee) {
@@ -58,17 +74,32 @@ export function ensureMethodIsNotInTree(path, methodName) {
   }
 }
 
+export function ensureNegatedUnaryExpression(path) {
+  if (!path.isUnaryExpression() || path.get("operator").node !== "!") {
+    throw new Error(`The filter expression should negate the predicate boolean expression.`);
+  }
+}
 
-/*
-  Makes sure unary function parameter is exclusively used in member expression
-*/
-export function ensureMemberExpressionUsesParameter(expr, paramNames) {
-  if (
-    !expr.isMemberExpression() ||
-    !expr.get("property").isIdentifier() ||
-    !expr.get("object").isIdentifier() ||
-    !paramNames.includes(expr.get("object").get("name").node)
-  ) {
-    throw new Error(`The map expression should return an object expression that references fields on the parameter. Parameters were ${paramNames.join(", ")}.`);
+export function ensureObjectExpression(path) {
+  if (!path.isObjectExpression()) {
+    throw new Error(`Expected an ObjectExpression but got ${path.type}.`)
+  }
+}
+
+export function ensureObjectSpreadUsesParameter(path, paramBindings) {
+
+}
+
+export function ensureSpreadProperty(path) {
+  if (!path.isSpreadProperty()) {
+    throw new Error(`Expected SpreadProperty but got ${path.type}.`)
+  }
+}
+
+export function ensureUnaryArrowFunction(path) {
+  ensureArrowFunction(path);
+  const params = path.get("params");
+  if (params.length !== 1) {
+    throw new Error(`Function must be an arrow function and have a single parameter. Found ${params.length} instead.`)
   }
 }

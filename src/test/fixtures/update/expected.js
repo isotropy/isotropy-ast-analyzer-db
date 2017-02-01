@@ -1,7 +1,7 @@
 module.exports = {
   type: "update",
   predicate: {
-    type: "fieldExpression",
+    type: "binaryFieldExpression",
     operator: "===",
     field: "assignee",
     comparandNode: {
@@ -9,15 +9,12 @@ module.exports = {
       name: "who"
     }
   },
-  fieldNodes: [
+  fields: [
     {
       type: "ObjectProperty",
       method: false,
-      key: {
-        type: "Identifier",
-        name: "assignee"
-      },
-      value: {
+      field: "assignee",
+      valueNode: {
         type: "Identifier",
         name: "newAssignee"
       }
