@@ -1,81 +1,49 @@
-// const sort = traverse(
-//   {
-//     type: "CallExpression",
-//     callee: {
-//       type: "MemberExpression",
-//       object: any([traverse(root), traverse(filter)]),
-//       property: {
-//         type: "Identifier",
-//         name: "sort"
-//       }
-//     },
-//     arguments: {
-//       "0": traverseArrowFunction({
-//         params: capture("params", {
-//           "0": {
-//             type: "Identifier",
-//             name: "x"
-//           },
-//           "1": {
-//             "type": "Identifier",
-//             "name": "y"
-//           }
-//         }),
-//         body: traverse(
-//           {
-//             type: "BinaryExpression",
-//             left: {
-//               "type": "MemberExpression",
-//               "object": capture("leftParam", {
-//                 "type": "Identifier",
-//               }),
-//               "property": {
-//                 "type": "Identifier",
-//                 "name": capture("leftField")
-//               }
-//             },
-//             operator: captureIf(i => [">", "<"].includes(i)),
-//             right: {
-//               "type": "MemberExpression",
-//               "object": capture("rightParam", {
-//                 "type": "Identifier",
-//               }),
-//               "property": {
-//                 "type": "Identifier",
-//                 "name": capture("rightField")
-//               }
-//             }
-//           },
-//           {
-//             preconditions: [state => parent.params],
-//             asserts: [[state => state.leftField !== state.rightField, "Sort expression should reference the same property."]],
-//             result: state => ({
-//               fields: [
-//                 {
-//                   field: state.leftField,
-//                   ascending:
-//                     (operator === ">" && checkBinding(state.leftParam, param1Bindings)) ||
-//                     (operator === "<" && checkBinding(state.rightParam, param1Bindings)),
-//                 }
-//               ]
-//             })
-//           }
-//         ),
-//         {
-//           asserts: [
-//             [
-//               state => {
-//                 const bindings = state..map(p => path.scope.bindings[p.node.name]);
-//                 bindings.some(t => true);
-//               },
-//               "Sort expression must uniquely reference all bindings"
-//             ]
-//           ]
-//         }
-//       )
-//     }
-//   },
-//   {
-//     result: state => {}
-//   }
-// );
+import arrowFunction from "./arrow-function";
+
+const map = traverse(
+  {
+    "type": "CallExpression",
+    "callee": {
+      "type": "MemberExpression",
+      "object": any([root, filter, sort]),
+      "property": {
+        "type": "Identifier",
+        "name": "map"
+      }
+    },
+    "arguments": {
+      "0": arrowFunction({
+        "params": {
+          "0": {
+            "type": "Identifier",
+            "name": "todo"
+          }
+        },
+        "body": {
+          "type": "ObjectExpression",
+          "properties": array("fields", {
+            "type": "ObjectProperty",
+            "method": false,
+            "key": {
+              "type": "Identifier",
+              "name": capture("newField")
+            },
+            "value": {
+              "type": "MemberExpression",
+              "object": {
+                "type": "Identifier",
+                "name": "todo"
+              },
+              "property": {
+                "type": "Identifier",
+                "name": capture("originalField")
+              }
+            }
+          })
+        }
+      })
+    }
+  }
+);
+
+export default map;

@@ -5,7 +5,7 @@ const sort = traverse(
     type: "CallExpression",
     callee: {
       type: "MemberExpression",
-      object: any([traverse(root), traverse(filter)]),
+      object: any([root, filter]),
       property: {
         type: "Identifier",
         name: "sort"
