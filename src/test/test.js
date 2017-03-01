@@ -51,14 +51,14 @@ describe("isotropy-ast-analyzer-db", () => {
   }
 
   const tests = [
-    ['count', 'count'],
-    ['delete', 'delete'],
+    ['collection', 'collection'],
+    // ['count', 'count'],
+    // ['delete', 'delete'],
     // ['import-select', 'import-select', { import: true }],
     // ['import-update', 'import-update', { import: true }],
     // ['insert', 'insert'],
     // ['map', 'map'],
     // ['select', 'select'],
-    // ['select-all', 'select-all'],
     // ['select-count', 'select-count'],
     // ['select-map', 'select-map'],
     // ['select-slice', 'select-slice'],

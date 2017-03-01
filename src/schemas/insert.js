@@ -1,5 +1,5 @@
 export default function() {
-  return mutation(
+  return mutation({
     method: "concat",
     arguments: {
       "0": {
@@ -32,5 +32,5 @@ export default function() {
         }
       }
     }
-  )
+  })
 }

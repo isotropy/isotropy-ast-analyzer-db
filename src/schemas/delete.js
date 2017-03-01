@@ -1,6 +1,6 @@
 export default function() {
-  return mutation(
-    method: "concat",
+  return mutation({
+    method: "filter",
     arguments: {
       "0": {
         "type": "ArrowFunctionExpression",
@@ -63,5 +63,5 @@ export default function() {
         }
       }
     }
-  )
+  })
 }
