@@ -1,4 +1,12 @@
 import { collection } from "./schemas";
+import { Seq } from "lazily";
+import { match } from "chimpanzee";
+
+function getAnalyzer(schemas, path, state, config) {
+  return Seq.of(schemas)
+    .map(schema => match(schema(state, config), path))
+    .first(x => x)
+}
 
 /*
   Ending with a method call
@@ -10,9 +18,9 @@ import { collection } from "./schemas";
     db.todos.sort()
 */
 
-export function analyzeCallExpression(path, state, config) {
-  return analyzer(path, ["filter", "map", "slice", "sort"], state, config);
-}
+// export function analyzeCallExpression(path, state, config) {
+//   return analyzer([filter, map, slice, sort], path, state, config);
+// }
 
 
 /*
@@ -23,5 +31,5 @@ export function analyzeCallExpression(path, state, config) {
 */
 
 export function analyzeMemberExpression(path, state, config) {
-  return analyzer(path, ["root", "length"], state, config);
+  return getAnalyzer([collection], path, state, config);
 }
