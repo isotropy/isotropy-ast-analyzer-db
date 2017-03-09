@@ -1,4 +1,4 @@
-import { collection, count } from "./schemas";
+import { collection, count, slice } from "./schemas";
 import { Seq } from "lazily";
 import { match, Match } from "chimpanzee";
 
@@ -18,9 +18,9 @@ function getAnalyzer(schemas, path, state, config) {
     db.todos.sort()
 */
 
-// export function analyzeCallExpression(path, state, config) {
-//   return analyzer([filter, map, slice, sort], path, state, config);
-// }
+export function analyzeCallExpression(path, state, config) {
+  return getAnalyzer([/* filter, map, */slice, /*sort*/], path, state, config);
+}
 
 
 /*

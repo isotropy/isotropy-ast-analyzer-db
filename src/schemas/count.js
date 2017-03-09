@@ -7,9 +7,9 @@ export default function(state, config) {
     {
       type: "MemberExpression",
       object: any(
-        [collection /* , select(), sort(), slice() */].map(fn =>
+        [collection /* , select(), sort(),  */].map(fn =>
           fn(state, config)),
-        { selector: "path", key: "collection" }
+        { selector: "path", key: "query" }
       ),
       property: {
         type: "Identifier",
@@ -21,7 +21,7 @@ export default function(state, config) {
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
-      builders: [{ get: (obj, { state: { collection } }) => length(collection) }]
+      builders: [{ get: (obj, { state: { query } }) => length(query) }]
     }
   );
 }
