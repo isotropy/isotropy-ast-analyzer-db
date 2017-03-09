@@ -11,9 +11,9 @@ export default function(opts) {
 
   function analyze(fn, path, state, config) {
     const analysis = fn(path, state, config);
+    path.skip()
     if (analysis !== undefined) {
-      path.skip()
-      _analysis = analysis;
+      _analysis = analysis.value;
       _state = state;
     }
   }
