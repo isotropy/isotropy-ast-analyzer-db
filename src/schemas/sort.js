@@ -1,25 +1,39 @@
 import collection from "./collection";
-import { capture, composite, any, array, optionalItem, Match, Fault } from "chimpanzee";
+import {
+  capture,
+  composite,
+  any,
+  array,
+  optionalItem,
+  Match,
+  Fault
+} from "chimpanzee";
 import { sort } from "../db-statements";
 
 function createSort(query, args) {
   const { rhs1, rhs2, field1, field2, operator, params } = args;
 
-  return (
-    ["<", ">", "<=", ">="].includes(operator)
-      ? field1 === field2
+  return ["<", ">", "<=", ">="].includes(operator)
+    ? field1 === field2
         ? [rhs1, rhs2].every(rhs => params.find(p => p.name === rhs))
-          ? new Match(sort(query, {
-            fields: [{
-              field: field1,
-              ascending:
-                rhs1 === params[0].name && rhs2 === params[1].name && [">", ">="].includes(operator) ||
-                rhs1 === params[1].name && rhs2 === params[0].name && ["<", "<="].includes(operator)
-            }]}))
-        : new Fault("Sort expression is invalid.")
-      : new Fault("Sort expression should reference the same field.")
-    : new Fault("Sort operator is invalid.")
-  )
+            ? new Match(
+                sort(query, {
+                  fields: [
+                    {
+                      field: field1,
+                      ascending: (rhs1 === params[0].name &&
+                        rhs2 === params[1].name &&
+                        [">", ">="].includes(operator)) ||
+                        (rhs1 === params[1].name &&
+                          rhs2 === params[0].name &&
+                          ["<", "<="].includes(operator))
+                    }
+                  ]
+                })
+              )
+            : new Fault("Sort expression is invalid.")
+        : new Fault("Sort expression should reference the same field.")
+    : new Fault("Sort operator is invalid.");
 }
 
 export default function(state, config) {
@@ -29,8 +43,7 @@ export default function(state, config) {
       callee: {
         type: "MemberExpression",
         object: any(
-          [collection, /* , select(), sort(),  */].map(fn =>
-            fn(state, config)),
+          [collection /* , select(), sort(),  */].map(fn => fn(state, config)),
           { selector: "path", key: "query" }
         ),
         property: {
@@ -86,7 +99,7 @@ export default function(state, config) {
         ],
         {
           key: "args",
-          builders: [ { get: (obj, context) => console.log("......", context) } ]
+          builders: [{ get: (obj, context) => console.log("......", context) }]
         }
       )
     },
@@ -96,7 +109,9 @@ export default function(state, config) {
     ],
     {
       //builders: [{ get: (obj, context) => console.log(context.state.args[0]) }]
-      builders: [{ get: (obj, { state: { query, args } }) => createSort(query, args[0]) }]
+      builders: [
+        { get: (obj, { state: { query, args } }) => createSort(query, args[0]) }
+      ]
     }
   );
 }
