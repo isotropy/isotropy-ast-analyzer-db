@@ -6,5 +6,5 @@ export { default as count } from "./count";
 export { default as root } from "./root";
 // export { default as select } from "./select";
 export { default as slice } from "./slice";
-// export { default as sort } from "./sort";
+export { default as sort } from "./sort";
 // export { default as update } from "./update";

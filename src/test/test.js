@@ -65,7 +65,7 @@ describe("isotropy-ast-analyzer-db", () => {
     // ['select-slice', 'select-slice'],
     // ['select-sort', 'select-sort'],
     ['slice', 'slice'],
-    // ['sort', 'sort'],
+    ['sort', 'sort'],
     // ['update', 'update'],
   ];
 

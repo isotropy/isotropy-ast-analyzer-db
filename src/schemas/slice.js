@@ -18,7 +18,6 @@ export default function(state, config) {
           name: "slice"
         }
       },
-      //arguments: capture("xxx")
       arguments: array(
         [
           {
