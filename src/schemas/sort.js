@@ -5,8 +5,6 @@ import { sort } from "../db-statements";
 function createSort(query, args) {
   const { rhs1, rhs2, field1, field2, operator, params } = args;
 
-  console.log("1", args, ["<", ">", "<=", ">="].includes(operator));
-  console.log("2", [rhs1, rhs2].every(rhs => params.find(p => p.name === rhs)));
   return (
     ["<", ">", "<=", ">="].includes(operator)
       ? field1 === field2
@@ -20,7 +18,7 @@ function createSort(query, args) {
             }]}))
         : new Fault("Sort expression is invalid.")
       : new Fault("Sort expression should reference the same field.")
-    : new Fault("Sort operator is invaled.")
+    : new Fault("Sort operator is invalid.")
   )
 }
 
