@@ -13,17 +13,15 @@ import {
   ensureObjectExpression,
   ensureSpreadProperty,
   ensureUnaryArrowFunction,
-  ensureUnmodifiedParameter,
+  ensureUnmodifiedParameter
 } from "./isotropy-ast-asserts";
 
 import {
   getArrowFunctionBody,
-  getParameterBindings,
+  getParameterBindings
 } from "./arrow-function-helper";
 
-import {
-  createLogicalOrBinaryExpression,
-} from "./predicate"
+import { createLogicalOrBinaryExpression } from "./predicate";
 
 /*
   The write analyzer handles operations where we mutate the db collection.
@@ -62,32 +60,32 @@ const nodeDefinitions = [
     follows: ["root"],
     builder: dbStatements.remove,
     args: getRemoveArgs
-  },
+  }
 ];
 
-const analyzer = makeAnalyzer(
-  nodeDefinitions,
-  rootAnalyzer.isRoot
-);
+const analyzer = makeAnalyzer(nodeDefinitions, rootAnalyzer.isRoot);
 
 export function analyzeAssignmentExpression(path, state, config) {
   if (
     path.isAssignmentExpression() &&
     rootAnalyzer.isRoot(path.get("left"), state, config)
   ) {
-    return analyzer(path.get("right"), ["insert", "update", "remove"], state, config);
+    return analyzer(
+      path.get("right"),
+      ["insert", "update", "remove"],
+      state,
+      config
+    );
   }
 }
-
 
 function getInsertArgs(path) {
   return { items: path[0].node, path };
 }
 
-
 function getUpdateArgs(path) {
   const fnPath = path[0];
-  ensureUnaryArrowFunction(fnPath)
+  ensureUnaryArrowFunction(fnPath);
 
   const body = getArrowFunctionBody(fnPath);
   ensureConditionalExpression(body);
@@ -115,10 +113,9 @@ function getUpdateArgs(path) {
   };
 }
 
-
 function getRemoveArgs(path, state, config) {
   const fnPath = path[0];
-  ensureUnaryArrowFunction(fnPath)
+  ensureUnaryArrowFunction(fnPath);
 
   const body = getArrowFunctionBody(fnPath);
   ensureNegatedUnaryExpression(body);

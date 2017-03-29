@@ -11,7 +11,10 @@ export default function(state, config, params) {
 
     return config.identifiers
       ? config.identifiers.includes(node)
-          ? new Match({ db: node, identifier: node }, { obj: path, context, key })
+          ? new Match(
+              { db: node, identifier: node },
+              { obj: path, context, key }
+            )
           : new Skip("Invalid", { obj: path, context, key })
       : state.rootDeclarations.some(
           ref =>
@@ -29,7 +32,10 @@ export default function(state, config, params) {
                   )
               );
               const db = rootDeclaration.node.init.arguments[0].value;
-              return new Match({ db, identifier: node }, { obj: path, context, key });
+              return new Match(
+                { db, identifier: node },
+                { obj: path, context, key }
+              );
             })()
           : new Skip("Invalid", { obj: path, context, key });
   }

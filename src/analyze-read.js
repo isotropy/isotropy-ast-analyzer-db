@@ -1,14 +1,16 @@
-import { collection, count, slice, sort} from "./schemas";
+import { collection, count, slice, sort } from "./schemas";
 import { Seq } from "lazily";
 import { match, Match } from "chimpanzee";
 import util from "util";
 import { print } from "./tools/debug-util";
 
 function makeAnalyzer(schemas, path, state, config) {
-  return Seq.of(schemas)
-    .map(schema => match(schema(state, config), path))
-    //.map(x => console.log(x, "\n.....") || print(x, "env.nonMatching") || x)
-    .first(x => x instanceof Match)
+  return (
+    Seq.of(schemas)
+      .map(schema => match(schema(state, config), path))
+      //.map(x => console.log(x, "\n.....") || print(x, "env.nonMatching") || x)
+      .first(x => x instanceof Match)
+  );
 }
 
 /*
@@ -22,9 +24,8 @@ function makeAnalyzer(schemas, path, state, config) {
 */
 
 export function analyzeCallExpression(path, state, config) {
-  return makeAnalyzer([/* filter, map, */slice, sort], path, state, config);
+  return makeAnalyzer([/* filter, map, */ slice, sort], path, state, config);
 }
-
 
 /*
   Ending with a member expression

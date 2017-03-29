@@ -1,11 +1,7 @@
 export function createLogicalOrBinaryExpression(path, paramBindings) {
-  return {}
+  return {};
 }
 
-export function createLogicalExpression(path, paramBindings) {
+export function createLogicalExpression(path, paramBindings) {}
 
-}
-
-export function createBinaryExpression(path, paramBindings) {
-
-}
+export function createBinaryExpression(path, paramBindings) {}

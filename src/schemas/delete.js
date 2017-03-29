@@ -3,65 +3,65 @@ export default function() {
     method: "filter",
     arguments: {
       "0": {
-        "type": "ArrowFunctionExpression",
-        "id": {},
-        "generator": false,
-        "expression": true,
-        "async": false,
-        "params": {
+        type: "ArrowFunctionExpression",
+        id: {},
+        generator: false,
+        expression: true,
+        async: false,
+        params: {
           "0": {
-            "type": "Identifier",
-            "name": "todo"
+            type: "Identifier",
+            name: "todo"
           }
         },
-        "body": {
-          "type": "UnaryExpression",
-          "operator": "!",
-          "prefix": true,
-          "argument": {
-            "type": "LogicalExpression",
-            "left": {
-              "type": "BinaryExpression",
-              "left": {
-                "type": "MemberExpression",
-                "object": {
-                  "type": "Identifier",
-                  "name": "todo"
+        body: {
+          type: "UnaryExpression",
+          operator: "!",
+          prefix: true,
+          argument: {
+            type: "LogicalExpression",
+            left: {
+              type: "BinaryExpression",
+              left: {
+                type: "MemberExpression",
+                object: {
+                  type: "Identifier",
+                  name: "todo"
                 },
-                "property": {
-                  "type": "Identifier",
-                  "name": "assignee"
+                property: {
+                  type: "Identifier",
+                  name: "assignee"
                 }
               },
-              "operator": "===",
-              "right": {
-                "type": "Identifier",
-                "name": "assignee"
+              operator: "===",
+              right: {
+                type: "Identifier",
+                name: "assignee"
               }
             },
-            "operator": "&&",
-            "right": {
-              "type": "BinaryExpression",
-              "left": {
-                "type": "MemberExpression",
-                "object": {
-                  "type": "Identifier",
-                  "name": "todo"
+            operator: "&&",
+            right: {
+              type: "BinaryExpression",
+              left: {
+                type: "MemberExpression",
+                object: {
+                  type: "Identifier",
+                  name: "todo"
                 },
-                "property": {
-                  "type": "Identifier",
-                  "name": "title"
+                property: {
+                  type: "Identifier",
+                  name: "title"
                 }
               },
-              "operator": "===",
-              "right": {
-                "type": "Identifier",
-                "name": "title"
+              operator: "===",
+              right: {
+                type: "Identifier",
+                name: "title"
               }
             }
           }
         }
       }
     }
-  })
+  });
 }

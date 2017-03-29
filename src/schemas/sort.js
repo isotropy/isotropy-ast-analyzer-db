@@ -175,10 +175,11 @@ const compareFn2 = traverse(
             lhsProp,
             rhsObject,
             rhsProp,
-            params,
+            params
           } = state;
           return lhsProp === rhsProp
-            ? [lhsObject, rhsObject].every(x => [params[0].name, params[1].name].includes(x))
+            ? [lhsObject, rhsObject].every(x =>
+                [params[0].name, params[1].name].includes(x))
                 ? { field: lhsProp, ascending: params[0].name === lhsObject }
                 : new Skip(
                     `Both ${params[0].name} and ${params[1].name} need to be used in the sort expression.`
@@ -196,10 +197,10 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: any(
-          [collection].map(fn => fn(state, config)),
-          { selector: "path", key: "query" }
-        ),
+        object: any([collection].map(fn => fn(state, config)), {
+          selector: "path",
+          key: "query"
+        }),
         property: {
           type: "Identifier",
           name: "sort"

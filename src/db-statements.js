@@ -8,7 +8,7 @@ export function createQuery(name, props, source) {
 }
 
 export function createValue(name, props, source) {
-  return { type: "value", property: name, ...props, source }
+  return { type: "value", property: name, ...props, source };
 }
 
 export function createModification(name, props, source) {
@@ -41,15 +41,15 @@ export function length(command) {
 
 export function insert(command, args) {
   const { items } = args;
-  return createModification("insert", { items }, command)
+  return createModification("insert", { items }, command);
 }
 
 export function update(command, args) {
   const { fields, predicate } = args;
-  return createModification("update", { fields, predicate }, command)
+  return createModification("update", { fields, predicate }, command);
 }
 
 export function remove(command, args) {
   const { predicate } = args;
-  return createModification("remove", { predicate }, command)
+  return createModification("remove", { predicate }, command);
 }

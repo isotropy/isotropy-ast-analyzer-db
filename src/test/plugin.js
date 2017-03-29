@@ -1,7 +1,10 @@
 import * as analyzers from "../";
 
 export default function(opts) {
-  let config = { clientPackageName: 'isotropy-mongodb-client', serverPackageName: 'isotropy-mongodb-server' };
+  let config = {
+    clientPackageName: "isotropy-mongodb-client",
+    serverPackageName: "isotropy-mongodb-server"
+  };
 
   let state = {
     importsAdded: []
@@ -11,13 +14,12 @@ export default function(opts) {
 
   function analyze(fn, path, state, config) {
     const analysis = fn(path, state, config);
-    path.skip()
+    path.skip();
     if (analysis !== undefined) {
       _analysis = analysis.value;
       _state = state;
     }
   }
-
 
   return {
     plugin: {
@@ -26,26 +28,45 @@ export default function(opts) {
       },
       visitor: {
         ImportDeclaration(path) {
-          analyzeAssignmentExpression(analyzers.meta.analyzeImportDeclaration, path, state, this.config);
-          path.skip
+          analyzeAssignmentExpression(
+            analyzers.meta.analyzeImportDeclaration,
+            path,
+            state,
+            this.config
+          );
+          path.skip;
         },
 
         AssignmentExpression(path) {
-          analyze(analyzers.write.analyzeAssignmentExpression, path, state, this.config);
+          analyze(
+            analyzers.write.analyzeAssignmentExpression,
+            path,
+            state,
+            this.config
+          );
         },
 
         MemberExpression(path) {
-          analyze(analyzers.read.analyzeMemberExpression, path, state, this.config);
+          analyze(
+            analyzers.read.analyzeMemberExpression,
+            path,
+            state,
+            this.config
+          );
         },
 
         CallExpression(path) {
-          analyze(analyzers.read.analyzeCallExpression, path, state, this.config);
+          analyze(
+            analyzers.read.analyzeCallExpression,
+            path,
+            state,
+            this.config
+          );
         }
-
       }
     },
     getResult: () => {
       return { analysis: _analysis, state: _state };
     }
-  }
+  };
 }

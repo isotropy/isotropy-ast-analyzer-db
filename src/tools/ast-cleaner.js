@@ -4,7 +4,9 @@ function clean(obj) {
   } else {
     const newObj = {};
     for (const key in obj) {
-      if (!(["start", "end", "loc", "computed", "shorthand", "extra"].includes(key))) {
+      if (
+        !["start", "end", "loc", "computed", "shorthand", "extra"].includes(key)
+      ) {
         newObj[key] = clean(obj[key]);
       }
     }

@@ -3,7 +3,7 @@ import * as babel from "babel-core";
 import fs from "fs";
 import path from "path";
 import makePlugin from "./plugin";
-import sourceMapSupport from 'source-map-support';
+import sourceMapSupport from "source-map-support";
 
 sourceMapSupport.install();
 
@@ -12,11 +12,22 @@ function clean(obj) {
     return obj;
   } else {
     if (Array.isArray(obj)) {
-      return obj.map(o => clean(o))
+      return obj.map(o => clean(o));
     } else {
       const newObj = {};
       for (const key in obj) {
-        if (!(["start", "end", "loc", "computed", "shorthand", "extra", "__clone", "path"].includes(key))) {
+        if (
+          ![
+            "start",
+            "end",
+            "loc",
+            "computed",
+            "shorthand",
+            "extra",
+            "__clone",
+            "path"
+          ].includes(key)
+        ) {
           newObj[key] = clean(obj[key]);
         }
       }
@@ -28,21 +39,29 @@ function clean(obj) {
 describe("isotropy-ast-analyzer-db", () => {
   function run([description, dir, opts]) {
     it(`${description}`, () => {
-      const fixturePath = path.resolve(__dirname, 'fixtures', dir, `fixture.js`);
-      const outputPath = path.resolve(__dirname, 'fixtures', dir, `output.js`);
+      const fixturePath = path.resolve(
+        __dirname,
+        "fixtures",
+        dir,
+        `fixture.js`
+      );
+      const outputPath = path.resolve(__dirname, "fixtures", dir, `output.js`);
       const expected = require(`./fixtures/${dir}/expected`);
       const pluginInfo = makePlugin(opts || { simple: true });
 
       const babelResult = babel.transformFileSync(fixturePath, {
         plugins: [
-          [pluginInfo.plugin, (!opts || !opts.import) && { identifiers: ["db"] }],
+          [
+            pluginInfo.plugin,
+            (!opts || !opts.import) && { identifiers: ["db"] }
+          ],
           "transform-object-rest-spread"
         ],
         parserOpts: {
-          sourceType: 'module',
+          sourceType: "module",
           allowImportExportEverywhere: true
         },
-        babelrc: false,
+        babelrc: false
       });
       const result = pluginInfo.getResult();
       const actual = clean(result.analysis);
@@ -51,8 +70,8 @@ describe("isotropy-ast-analyzer-db", () => {
   }
 
   const tests = [
-    ['collection', 'collection'],
-    ['count', 'count'],
+    ["collection", "collection"],
+    ["count", "count"],
     // ['delete', 'delete'],
     // ['import-select', 'import-select', { import: true }],
     // ['import-update', 'import-update', { import: true }],
@@ -63,16 +82,14 @@ describe("isotropy-ast-analyzer-db", () => {
     // ['select-map', 'select-map'],
     // ['select-slice', 'select-slice'],
     // ['select-sort', 'select-sort'],
-    ['slice', 'slice'],
-    ['sort', 'sort'],
-    ['sort-alt', 'sort-alt'],
-    ['sort-slice', 'sort-slice'],
+    ["slice", "slice"],
+    ["sort", "sort"],
+    ["sort-alt", "sort-alt"],
+    ["sort-slice", "sort-slice"]
     // ['update', 'update'],
   ];
 
   for (const test of tests) {
     run(test);
   }
-
-
 });
