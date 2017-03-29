@@ -1,4 +1,5 @@
 import collection from "./collection";
+import sort from "./sort";
 import { capture, composite, any, array, optionalItem } from "chimpanzee";
 import { slice } from "../db-statements";
 
@@ -9,7 +10,7 @@ export default function(state, config) {
       callee: {
         type: "MemberExpression",
         object: any(
-          [collection /* , select(), sort(),  */].map(fn => fn(state, config)),
+          [collection, sort /* , select */].map(fn => fn(state, config)),
           { selector: "path", key: "query" }
         ),
         property: {
