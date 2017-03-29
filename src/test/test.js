@@ -45,7 +45,6 @@ describe("isotropy-ast-analyzer-db", () => {
         babelrc: false,
       });
       const result = pluginInfo.getResult();
-      console.log(result.analysis);
       const actual = clean(result.analysis);
       actual.should.deepEqual(expected);
     });
@@ -66,6 +65,7 @@ describe("isotropy-ast-analyzer-db", () => {
     // ['select-sort', 'select-sort'],
     ['slice', 'slice'],
     ['sort', 'sort'],
+    ['sort-alt', 'sort-alt'],
     // ['update', 'update'],
   ];
 

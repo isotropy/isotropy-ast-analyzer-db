@@ -7,8 +7,7 @@ export default function(state, config) {
     {
       type: "MemberExpression",
       object: any(
-        [collection /* , select(), sort(),  */].map(fn =>
-          fn(state, config)),
+        [collection /* , select(), sort(),  */].map(fn => fn(state, config)),
         { selector: "path", key: "query" }
       ),
       property: {

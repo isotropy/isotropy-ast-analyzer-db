@@ -22,12 +22,11 @@ export default function(state, config) {
     {
       builders: [
         {
-          get: (obj, { state: { collection, root } }) =>
-            createCollection({
-              identifier: root.identifier,
-              db: root.db,
-              collection: collection
-            })
+          get: (obj, { state: { collection, root } }) => createCollection({
+            identifier: root.identifier,
+            db: root.db,
+            collection: collection
+          })
         }
       ]
     }

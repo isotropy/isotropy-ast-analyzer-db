@@ -9,8 +9,7 @@ export default function(state, config) {
       callee: {
         type: "MemberExpression",
         object: any(
-          [collection, /* , select(), sort(),  */].map(fn =>
-            fn(state, config)),
+          [collection /* , select(), sort(),  */].map(fn => fn(state, config)),
           { selector: "path", key: "query" }
         ),
         property: {
@@ -37,7 +36,12 @@ export default function(state, config) {
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
-      builders: [{ get: (obj, { state: { query, args } }) => slice(query, { from: args[0].from, to: args[1].to }) }]
+      builders: [
+        {
+          get: (obj, { state: { query, args } }) =>
+            slice(query, { from: args[0].from, to: args[1].to })
+        }
+      ]
     }
   );
 }

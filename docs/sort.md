@@ -6,7 +6,6 @@ async function getTodos(who) {
       (x, y) => x.assignee > y.assignee ? 1 : x.assignee === y.assignee ? 0 : 1
     );
 }
-
 ```
 
 ```javascript
@@ -18,10 +17,19 @@ a = {
       type: "MemberExpression",
       object: {
         type: "MemberExpression",
-        object: { type: "Identifier", name: "db" },
-        property: { type: "Identifier", name: "todos" }
+        object: {
+          type: "Identifier",
+          name: "db"
+        },
+        property: {
+          type: "Identifier",
+          name: "todos"
+        }
       },
-      property: { type: "Identifier", name: "sort" }
+      property: {
+        type: "Identifier",
+        name: "sort"
+      }
     },
     arguments: {
       "0": {
@@ -31,7 +39,10 @@ a = {
         expression: true,
         async: false,
         params: {
-          "0": { type: "Identifier", name: "x" },
+          "0": {
+            type: "Identifier",
+            name: "x"
+          },
           "1": { type: "Identifier", name: "y" }
         },
         body: {
@@ -40,7 +51,10 @@ a = {
             type: "BinaryExpression",
             left: {
               type: "MemberExpression",
-              object: { type: "Identifier", name: "x" },
+              object: {
+                type: "Identifier",
+                name: "x"
+              },
               property: {
                 type: "Identifier",
                 name: "assignee"
@@ -49,21 +63,30 @@ a = {
             operator: ">",
             right: {
               type: "MemberExpression",
-              object: { type: "Identifier", name: "y" },
+              object: {
+                type: "Identifier",
+                name: "y"
+              },
               property: {
                 type: "Identifier",
                 name: "assignee"
               }
             }
           },
-          consequent: { type: "NumericLiteral", value: 1 },
+          consequent: {
+            type: "NumericLiteral",
+            value: 1
+          },
           alternate: {
             type: "ConditionalExpression",
             test: {
               type: "BinaryExpression",
               left: {
                 type: "MemberExpression",
-                object: { type: "Identifier", name: "x" },
+                object: {
+                  type: "Identifier",
+                  name: "x"
+                },
                 property: {
                   type: "Identifier",
                   name: "assignee"
@@ -72,7 +95,10 @@ a = {
               operator: "===",
               right: {
                 type: "MemberExpression",
-                object: { type: "Identifier", name: "y" },
+                object: {
+                  type: "Identifier",
+                  name: "y"
+                },
                 property: {
                   type: "Identifier",
                   name: "assignee"
@@ -83,7 +109,10 @@ a = {
               type: "NumericLiteral",
               value: 0
             },
-            alternate: { type: "NumericLiteral", value: 1 }
+            alternate: {
+              type: "NumericLiteral",
+              value: 1
+            }
           }
         }
       }

@@ -3,34 +3,34 @@ export default function() {
     method: "concat",
     arguments: {
       "0": {
-        "type": "ObjectExpression",
-        "properties": {
+        type: "ObjectExpression",
+        properties: {
           "0": {
-            "type": "ObjectProperty",
-            "method": false,
-            "key": {
-              "type": "Identifier",
-              "name": "title"
+            type: "ObjectProperty",
+            method: false,
+            key: {
+              type: "Identifier",
+              name: "title"
             },
-            "value": {
-              "type": "Identifier",
-              "name": "title"
+            value: {
+              type: "Identifier",
+              name: "title"
             }
           },
           "1": {
-            "type": "ObjectProperty",
-            "method": false,
-            "key": {
-              "type": "Identifier",
-              "name": "assignee"
+            type: "ObjectProperty",
+            method: false,
+            key: {
+              type: "Identifier",
+              name: "assignee"
             },
-            "value": {
-              "type": "Identifier",
-              "name": "assignee"
+            value: {
+              type: "Identifier",
+              name: "assignee"
             }
           }
         }
       }
     }
-  })
+  });
 }

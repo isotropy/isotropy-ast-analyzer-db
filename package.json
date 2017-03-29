@@ -1,9 +1,10 @@
 {
   "name": "isotropy-ast-analyzer-db",
-  "version": "0.0.17",
+  "version": "0.0.20",
   "author": "Jeswin<jeswinpk@agilehead.com>",
   "scripts": {
-    "test": "mocha dist/test/test.js"
+    "test": "mocha dist/test/test.js",
+    "debug": "mocha dist/test/test.js --debug-brk"
   },
   "main": "dist/isotropy-ast-analyzer-db.js",
   "dependencies": {
@@ -11,7 +12,7 @@
     "babel-core": "^6.22.1",
     "babel-preset-es2016": "^6.22.0",
     "babel-preset-es2017": "^6.22.0",
-    "chimpanzee": "0.0.19",
+    "chimpanzee": "0.0.30",
     "lazily": "^0.0.5"
   },
   "devDependencies": {
