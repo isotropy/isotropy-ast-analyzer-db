@@ -3,8 +3,12 @@ module.exports = {
   method: "map",
   fields: [
     {
-      field: "assignee"
-      newField: "mainAssignee"
+      field: "assignee",
+      newField: "owner"
+    },
+    {
+      field: "createdAt",
+      newField: "timestamp"
     }
   ],
   source: {

@@ -1,7 +1,6 @@
 import integer from "./common/integer";
-import collection from "./collection";
-import select from "./select";
-import slice from "./slice";
+import { collection, select, slice } from "./";
+import wrap from "../chimpanzee-tools/wrap";
 
 import {
   capture,
@@ -103,7 +102,6 @@ const compareFn1 = traverse(
     }
   },
   {
-    modifiers: { object: path => path.node },
     builders: [
       {
         get: (obj, { state }) => ({
@@ -166,7 +164,6 @@ const compareFn2 = traverse(
     }
   },
   {
-    modifiers: { object: path => path.node },
     builders: [
       {
         get(obj, { state }) {
@@ -197,7 +194,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: any([collection].map(fn => fn(state, config)), {
+        object: selectSchemaFrom([collection])(state, config)({
           selector: "path",
           key: "query"
         }),
@@ -206,9 +203,7 @@ export default function(state, config) {
           name: "sort"
         }
       },
-      arguments: traverse(array([any([compareFn1, compareFn2])]), {
-        selector: "path"
-      })
+      arguments: array([any([compareFn1, compareFn2])])
     },
     [
       { modifiers: { object: path => path.node } },

@@ -1,7 +1,7 @@
-import collection from "./collection";
-import sort from "./sort";
+import { collection, map, sort } from "./";
 import { capture, composite, any, array, optionalItem } from "chimpanzee";
 import { slice } from "../db-statements";
+import wrap from "../chimpanzee-tools/wrap";
 
 export default function(state, config) {
   return composite(
@@ -9,10 +9,10 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: any(
-          [collection, sort /* , select */].map(fn => fn(state, config)),
-          { selector: "path", key: "query" }
-        ),
+        object: selectSchemaFrom([collection, map, sort])(state, config)({
+          selector: "path",
+          key: "query"
+        }),
         property: {
           type: "Identifier",
           name: "slice"
