@@ -1,7 +1,7 @@
-import { collection, map, sort } from "./";
+import { collection, map } from "./";
 import { capture, composite, any, array, optionalItem } from "chimpanzee";
 import { slice } from "../db-statements";
-import wrap from "../chimpanzee-tools/wrap";
+import { defer } from "../chimpanzee-tools";
 
 export default function(state, config) {
   return composite(
@@ -9,10 +9,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: selectSchemaFrom([collection, map, sort])(state, config)({
-          selector: "path",
-          key: "query"
-        }),
+        object: defer([collection])(state, config),
         property: {
           type: "Identifier",
           name: "slice"
@@ -33,14 +30,17 @@ export default function(state, config) {
       )
     },
     [
-      { modifiers: { object: path => path.node } },
+      { name: "default", modifiers: { object: path => path.node } },
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
       builders: [
         {
-          get: (obj, { state: { query, args } }) =>
-            slice(query, { from: args[0].from, to: args[1].to })
+          get: (obj, { state }) =>
+            slice(state.query, {
+              from: state.args[0].from,
+              to: state.args[1].to
+            })
         }
       ]
     }

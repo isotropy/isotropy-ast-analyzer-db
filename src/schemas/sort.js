@@ -1,6 +1,6 @@
 import integer from "./common/integer";
 import { collection, select, slice } from "./";
-import wrap from "../chimpanzee-tools/wrap";
+import defer from "../chimpanzee-tools/defer";
 
 import {
   capture,
@@ -194,10 +194,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: selectSchemaFrom([collection])(state, config)({
-          selector: "path",
-          key: "query"
-        }),
+        object: defer([collection]),
         property: {
           type: "Identifier",
           name: "sort"

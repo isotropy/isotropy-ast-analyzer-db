@@ -1,5 +1,5 @@
-export function print(obj, path) {
-  path = typeof path === "string" ? path.split(".") : path;
+export function print(obj, path, fn = x => x) {
+  path = !path ? [] : typeof path === "string" ? path.split(".") : path;
 
   for (const frag of path) {
     if (typeof obj === "undefined") {
@@ -8,5 +8,5 @@ export function print(obj, path) {
     }
     obj = obj[frag];
   }
-  console.log(obj);
+  console.log(fn(obj));
 }

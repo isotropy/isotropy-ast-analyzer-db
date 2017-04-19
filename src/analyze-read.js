@@ -9,7 +9,8 @@ function makeAnalyzer(schemas, path, state, config) {
     Seq.of(schemas)
       .map(schema => schema(state, config))
       .map(schema => match(schema, path))
-      .map(x => console.log(x, "\n.....") || print(x, "env.nonMatching") || x)
+      //.map(x => console.log("\n------\n", util.inspect(x, { depth: 4 })) || print(x, "env.parents") || x)
+      //.map(x => print(x) || x)
       .first(x => x instanceof Match)
   );
 }
@@ -25,7 +26,7 @@ function makeAnalyzer(schemas, path, state, config) {
 */
 export function analyzeCallExpression(path, state, config) {
   return makeAnalyzer(
-    [schemas.map, schemas.slice, schemas.sort],
+    [schemas.map, schemas.slice],
     path,
     state,
     config
@@ -39,5 +40,5 @@ export function analyzeCallExpression(path, state, config) {
     db.todos.filter().length
 */
 export function analyzeMemberExpression(path, state, config) {
-  return makeAnalyzer([schemas.collection, schemas.count], path, state, config);
+  return makeAnalyzer([schemas.collection], path, state, config);
 }

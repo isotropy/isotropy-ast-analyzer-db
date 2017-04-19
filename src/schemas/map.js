@@ -12,19 +12,17 @@ import {
 } from "chimpanzee";
 
 import { map } from "../db-statements";
-import wrap from "../chimpanzee-tools/wrap";
-import { collection, slice, sort } from "./";
+import { defer, print } from "../chimpanzee-tools";
+import { collection } from "./";
 
 export default function(state, config) {
   return composite(
     {
-      type: "CallExpression",
+      //type: "CallExpression",
+      type: capture(),
       callee: {
         type: "MemberExpression",
-        object: selectSchemaFrom([collection, slice, sort])(state, config)({
-          selector: "path",
-          key: "query"
-        })
+        object: defer([collection])(state, config)
       },
       arguments: array(
         [
@@ -68,7 +66,7 @@ export default function(state, config) {
       )
     },
     [
-      { modifiers: { object: path => path.node } },
+      { name: "default", modifiers: { object: path => path.node } },
       {
         name: "path",
         modifiers: {

@@ -1,16 +1,13 @@
 import { collection } from "./";
 import { capture, composite, any } from "chimpanzee";
 import { length } from "../db-statements";
-import wrap from "../chimpanzee-tools/wrap";
+import defer from "../chimpanzee-tools/defer";
 
 export default function(state, config) {
   return composite(
     {
       type: "MemberExpression",
-      object: defer(any([collection])(state, config)({
-        selector: "path",
-        key: "query"
-      }),
+      object: defer([collection]),
       property: {
         type: "Identifier",
         name: "length"

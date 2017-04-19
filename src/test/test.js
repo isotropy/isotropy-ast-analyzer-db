@@ -70,7 +70,7 @@ describe("isotropy-ast-analyzer-db", () => {
   }
 
   const tests = [
-    // ["collection", "collection"],
+    ["collection", "collection"],
     // ["count", "count"],
     // ['delete', 'delete'],
     // ['import-select', 'import-select', { import: true }],
@@ -82,7 +82,7 @@ describe("isotropy-ast-analyzer-db", () => {
     // ['select-map', 'select-map'],
     // ['select-slice', 'select-slice'],
     // ['select-sort', 'select-sort'],
-    // ["slice", "slice"],
+    ["slice", "slice"],
     // ["sort", "sort"],
     // ["sort-alt", "sort-alt"],
     // ["sort-slice", "sort-slice"]

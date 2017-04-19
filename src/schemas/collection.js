@@ -1,7 +1,6 @@
 import { capture, composite } from "chimpanzee";
 import { createCollection } from "../db-statements";
 import { root } from "./";
-import wrap from "../chimpanzee-tools/wrap";
 
 export default function(state, config) {
   return composite(
@@ -17,7 +16,7 @@ export default function(state, config) {
       }
     },
     [
-      { modifiers: { object: path => path.node } },
+      { name: "default", modifiers: { object: path => path.node } },
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
