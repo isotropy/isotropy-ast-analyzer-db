@@ -40,5 +40,5 @@ export function analyzeCallExpression(path, state, config) {
     db.todos.filter().length
 */
 export function analyzeMemberExpression(path, state, config) {
-  return makeAnalyzer([schemas.collection], path, state, config);
+  return makeAnalyzer([schemas.count, schemas.collection], path, state, config);
 }

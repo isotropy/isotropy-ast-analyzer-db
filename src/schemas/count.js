@@ -7,18 +7,18 @@ export default function(state, config) {
   return composite(
     {
       type: "MemberExpression",
-      object: defer([collection]),
+      object: defer([collection])(state, config),
       property: {
         type: "Identifier",
         name: "length"
       }
     },
     [
-      { modifiers: { object: path => path.node } },
+      { name: "default", modifiers: { object: path => path.node } },
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
-      builders: [{ get: (obj, { state: { query } }) => length(query) }]
+      builders: [{ get: (obj, { state }) => length(state.query) }]
     }
   );
 }
