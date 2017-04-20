@@ -9,7 +9,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: defer([collection])(state, config),
+        object: defer([collection, map])(state, config),
         property: {
           type: "Identifier",
           name: "slice"

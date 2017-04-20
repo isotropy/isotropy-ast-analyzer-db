@@ -167,16 +167,11 @@ const compareFn2 = traverse(
     builders: [
       {
         get(obj, { state }) {
-          const {
-            lhsObject,
-            lhsProp,
-            rhsObject,
-            rhsProp,
-            params
-          } = state;
+          const { lhsObject, lhsProp, rhsObject, rhsProp, params } = state;
           return lhsProp === rhsProp
             ? [lhsObject, rhsObject].every(x =>
-                [params[0].name, params[1].name].includes(x))
+                [params[0].name, params[1].name].includes(x)
+              )
                 ? { field: lhsProp, ascending: params[0].name === lhsObject }
                 : new Skip(
                     `Both ${params[0].name} and ${params[1].name} need to be used in the sort expression.`

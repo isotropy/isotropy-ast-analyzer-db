@@ -8,7 +8,8 @@ export function analyzeImportDeclaration(path, state, config) {
     state.rootDeclarations = path.scope.bindings[
       specifier
     ].referencePaths.map(r =>
-      r.findParent(path => path.isVariableDeclarator()));
+      r.findParent(path => path.isVariableDeclarator())
+    );
   }
   return true;
 }
