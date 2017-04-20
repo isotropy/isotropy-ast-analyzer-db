@@ -1,5 +1,12 @@
 import { collection, map } from "./";
-import { capture, composite, any, array, optionalItem } from "chimpanzee";
+import {
+  capture,
+  composite,
+  any,
+  array,
+  map as mapResult,
+  optionalItem
+} from "chimpanzee";
 import { slice } from "../db-statements";
 import { defer } from "../chimpanzee-tools";
 
@@ -17,14 +24,22 @@ export default function(state, config) {
       },
       arguments: array(
         [
-          {
-            type: "NumericLiteral",
-            value: capture("from")
-          },
-          optionalItem({
-            type: "NumericLiteral",
-            value: capture("to")
-          })
+          mapResult(
+            {
+              type: "NumericLiteral",
+              value: capture()
+            },
+            s => s.value
+          ),
+          optionalItem(
+            mapResult(
+              {
+                type: "NumericLiteral",
+                value: capture()
+              },
+              s => s.value
+            )
+          )
         ],
         { key: "args" }
       )
@@ -38,8 +53,8 @@ export default function(state, config) {
         {
           get: (obj, { state }) =>
             slice(state.query, {
-              from: state.args[0].from,
-              to: state.args[1].to
+              from: state.args[0],
+              to: state.args[1]
             })
         }
       ]

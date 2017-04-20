@@ -27,7 +27,11 @@ export function map(command, args) {
 
 export function slice(command, args) {
   const { from, to } = args;
-  return createQuery("slice", { from, to }, command);
+  return createQuery(
+    "slice",
+    typeof to !== "undefined" ? { from, to } : { from },
+    command
+  );
 }
 
 export function sort(command, args) {
