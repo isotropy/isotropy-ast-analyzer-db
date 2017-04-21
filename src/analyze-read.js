@@ -10,7 +10,7 @@ function makeAnalyzer(schemas, path, state, config) {
       .map(schema => schema(state, config))
       .map(schema => match(schema, path))
       //.map(x => console.log("\n------\n", util.inspect(x, { depth: 4 })) || print(x, "env.parents") || x)
-      //.map(x => print(x) || x)
+      .map(x => print(x) || x)
       .first(x => x instanceof Match)
   );
 }

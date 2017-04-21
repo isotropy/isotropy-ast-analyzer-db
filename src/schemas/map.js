@@ -13,7 +13,7 @@ import {
 
 import { map } from "../db-statements";
 import { defer, print } from "../chimpanzee-tools";
-import { collection } from "./";
+import { collection, slice } from "./";
 
 export default function(state, config) {
   return composite(
@@ -22,7 +22,7 @@ export default function(state, config) {
       type: capture(),
       callee: {
         type: "MemberExpression",
-        object: defer([collection])(state, config)
+        object: defer([collection, slice])(state, config)
       },
       arguments: array(
         [

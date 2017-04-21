@@ -1,6 +1,7 @@
 import integer from "./common/integer";
 import { collection, select, slice } from "./";
 import defer from "../chimpanzee-tools/defer";
+import R from "ramda";
 
 import {
   capture,
@@ -16,7 +17,16 @@ import {
 
 import { sort } from "../db-statements";
 
-const operators = any([">", "<", ">=", "<="].map(i => literal(i)));
+const operators = any([">", "<", ">=", "<=", "==="].map(i => literal(i)));
+
+
+function validateCompareFn1({ lhsProp1, rhsProp1, operator1, val1, lhsProp2, rhsProp2, operator2, val2, val3 }) {
+  return lhsProp1 === rhsProp1 && lhsProp1 === lhsProp2 && lhsProp1 === rhsProp2
+    ? R.difference([">", "<", ">=", "<=", "==="], [operator1, operator2]).length === 3
+      ?
+      : new Skip("Invalid sort expression.")
+    : new Skip("All fields in the sort expression must be the same.")
+}
 
 /*
 async function getTodos(who) {
@@ -108,6 +118,8 @@ const compareFn1 = traverse(
           field: state.lhsProp1,
           ascending: ([">", ">="].includes(state.operator1) &&
             state.val1 === 1) ||
+            ([">", ">="].includes(state.operator2) &&
+              state.val2 === 1) ||
             (["<", "<="].includes(state.operator1) && state.val1 === -1)
         })
       }
