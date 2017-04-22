@@ -19,15 +19,6 @@ import { sort } from "../db-statements";
 
 const operators = any([">", "<", ">=", "<=", "==="].map(i => literal(i)));
 
-
-function validateCompareFn1({ lhsProp1, rhsProp1, operator1, val1, lhsProp2, rhsProp2, operator2, val2, val3 }) {
-  return lhsProp1 === rhsProp1 && lhsProp1 === lhsProp2 && lhsProp1 === rhsProp2
-    ? R.difference([">", "<", ">=", "<=", "==="], [operator1, operator2]).length === 3
-      ?
-      : new Skip("Invalid sort expression.")
-    : new Skip("All fields in the sort expression must be the same.")
-}
-
 /*
 async function getTodos(who) {
   return db.todos
@@ -36,6 +27,72 @@ async function getTodos(who) {
     );
 }
 */
+function getSortExpression1({
+  lhsProp1,
+  rhsProp1,
+  operator1,
+  val1,
+  lhsProp2,
+  rhsProp2,
+  operator2,
+  val2,
+  val3
+}) {
+  return (
+    /*
+      Variants of (a,b) => a.total > b.total ? 1 : a.total < b.total ? -1 : 0;
+      Terminology:
+        1   Swap
+        0   same
+       -1   Keep
+    */
+    lhsProp1 === rhsProp1 && lhsProp1 === lhsProp2 && lhsProp1 === rhsProp2
+      ? R.difference([1, 0, -1], [val1, val2, val3]).length === []
+          ? (() => {
+              const indexOf = what => [val1, val2, val3].findIndex(what);
+              const operatorOf = what => [operator1, operator2][indexOf(what)];
+
+              const [indexSwap, indexSame, indexKeep] = [1, 0, -1].map(indexOf);
+              const [opSwap, opSame, opKeep] = [1, 0, -1].map(operatorOf);
+
+              return indexSame === 2 || opSame === "==="
+                ? (() => {
+                    //1 is either val1 or val2
+                    return indexSwap < 2
+                      ? (() => {
+                          return [">", ">="].includes(opSwap)
+                            ? ["<", "<="].includes(opSwap) || indexKeep === 2
+                                ? { field: lhsProp1, ascending: true }
+                                : new Skip(
+                                    "The operator in the comparison returning -1 should always be the opposite of the operator which reutrns 1."
+                                  )
+                            : ["<", "<="].includes(opSwap)
+                                ? [">", ">="].includes(opSwap) ||
+                                    indexKeep === 2
+                                    ? { field: lhsProp1, ascending: false }
+                                    : new Skip(
+                                        "The operator in the comparison returning -1 should always be the opposite of the operator which reutrns 1."
+                                      )
+                                : new Skip("Incorrect sort expression.");
+                        })()
+                      : //1 is val3, right-most.
+                        [">", ">="].includes(opKeep)
+                          ? { field: lhsProp1, ascending: false }
+                          : ["<", "<="].includes(opKeep)
+                              ? { field: lhsProp1, ascending: true }
+                              : new Skip("Incorrect sort expression.");
+                  })()
+                : new Skip(
+                    "The operator in the comparison returning 0 should always be '==='."
+                  );
+            })()
+          : new Skip(
+              "The sort expression is incorrect. Should return 1, 0 and -1 according to JS specifications."
+            )
+      : new Skip("All fields in the sort expression must be the same.")
+  );
+}
+
 const compareFn1 = traverse(
   {
     type: "ArrowFunctionExpression",
@@ -114,14 +171,7 @@ const compareFn1 = traverse(
   {
     builders: [
       {
-        get: (obj, { state }) => ({
-          field: state.lhsProp1,
-          ascending: ([">", ">="].includes(state.operator1) &&
-            state.val1 === 1) ||
-            ([">", ">="].includes(state.operator2) &&
-              state.val2 === 1) ||
-            (["<", "<="].includes(state.operator1) && state.val1 === -1)
-        })
+        get: (obj, { state }) => getSortExpression1(state)
       }
     ]
   }
@@ -129,12 +179,66 @@ const compareFn1 = traverse(
 
 /*
 async function getTodos(who) {
+  // Ascending
   return db.todos
     .sort(
       (x, y) => x.assignee - y.assignee
     );
+
+  // Descending
+  return db.todos
+    .sort(
+      (x, y) => -(x.assignee - y.assignee)
+      );
 }
 */
+const sortExpression2Ascending = traverse({
+  type: "BinaryExpression",
+  left: {
+    type: "MemberExpression",
+    object: {
+      type: "Identifier",
+      name: capture("lhsObject")
+    },
+    property: {
+      type: "Identifier",
+      name: capture("lhsProp")
+    }
+  },
+  operator: "-",
+  right: {
+    type: "MemberExpression",
+    object: {
+      type: "Identifier",
+      name: capture("rhsObject")
+    },
+    property: {
+      type: "Identifier",
+      name: capture("rhsProp")
+    }
+  }
+});
+
+const sortExpression2Descending = traverse({
+  type: "UnaryExpression",
+  operator: capture("operator"),
+  argument: sortExpression2Ascending
+});
+
+function getSortExpression2({
+  lhsObject,
+  lhsProp,
+  rhsObject,
+  rhsProp,
+  operator
+}) {
+  return lhsProp === rhsProp
+    ? { field: lhsProp, ascending: operator === "-" }
+    : new Skip(
+        "The sort expression must reference the same property on compared objects."
+      );
+}
+
 const compareFn2 = traverse(
   {
     type: "ArrowFunctionExpression",
@@ -148,32 +252,7 @@ const compareFn2 = traverse(
         name: capture("name")
       }
     ],
-    body: {
-      type: "BinaryExpression",
-      left: {
-        type: "MemberExpression",
-        object: {
-          type: "Identifier",
-          name: capture("lhsObject")
-        },
-        property: {
-          type: "Identifier",
-          name: capture("lhsProp")
-        }
-      },
-      operator: "-",
-      right: {
-        type: "MemberExpression",
-        object: {
-          type: "Identifier",
-          name: capture("rhsObject")
-        },
-        property: {
-          type: "Identifier",
-          name: capture("rhsProp")
-        }
-      }
-    }
+    body: any([sortExpression2Ascending, sortExpression2Descending])
   },
   {
     builders: [
