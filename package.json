@@ -12,8 +12,8 @@
     "babel-core": "^6.22.1",
     "babel-preset-es2016": "^6.22.0",
     "babel-preset-es2017": "^6.22.0",
-    "chimpanzee": "0.0.36",
-    "lazily": "^0.0.5",
+    "chimpanzee": "0.0.43",
+    "lazily": "^0.0.17",
     "ramda": "^0.23.0"
   },
   "devDependencies": {

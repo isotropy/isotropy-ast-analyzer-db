@@ -5,7 +5,6 @@ import {
   array,
   optionalItem,
   literal,
-  traverse,
   repeatingItem,
   Match,
   Skip

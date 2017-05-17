@@ -4,13 +4,13 @@ import defer from "../chimpanzee-tools/defer";
 import R from "ramda";
 
 import {
+  builtins as $,
   capture,
   composite,
   any,
   array,
   optionalItem,
   literal,
-  traverse,
   Match,
   Skip
 } from "chimpanzee";
@@ -67,8 +67,7 @@ function getSortExpression1({
                                     "The operator in the comparison returning -1 should always be the opposite of the operator which reutrns 1."
                                   )
                             : ["<", "<="].includes(opSwap)
-                                ? [">", ">="].includes(opSwap) ||
-                                    indexKeep === 2
+                                ? [">", ">="].includes(opSwap) || indexKeep === 2
                                     ? { field: lhsProp1, ascending: false }
                                     : new Skip(
                                         "The operator in the comparison returning -1 should always be the opposite of the operator which reutrns 1."
@@ -93,7 +92,7 @@ function getSortExpression1({
   );
 }
 
-const compareFn1 = traverse(
+const compareFn1 = $.obj(
   {
     type: "ArrowFunctionExpression",
     params: [
@@ -169,11 +168,7 @@ const compareFn1 = traverse(
     }
   },
   {
-    builders: [
-      {
-        get: (obj, { state }) => getSortExpression1(state)
-      }
-    ]
+    build: () => ({ state }) => getSortExpression1(state)
   }
 );
 
@@ -192,7 +187,7 @@ async function getTodos(who) {
       );
 }
 */
-const sortExpression2Ascending = traverse({
+const sortExpression2Ascending = {
   type: "BinaryExpression",
   left: {
     type: "MemberExpression",
@@ -217,29 +212,21 @@ const sortExpression2Ascending = traverse({
       name: capture("rhsProp")
     }
   }
-});
+};
 
-const sortExpression2Descending = traverse({
+const sortExpression2Descending = {
   type: "UnaryExpression",
   operator: capture("operator"),
   argument: sortExpression2Ascending
-});
+};
 
-function getSortExpression2({
-  lhsObject,
-  lhsProp,
-  rhsObject,
-  rhsProp,
-  operator
-}) {
+function getSortExpression2({ lhsObject, lhsProp, rhsObject, rhsProp, operator }) {
   return lhsProp === rhsProp
     ? { field: lhsProp, ascending: operator === "-" }
-    : new Skip(
-        "The sort expression must reference the same property on compared objects."
-      );
+    : new Skip("The sort expression must reference the same property on compared objects.");
 }
 
-const compareFn2 = traverse(
+const compareFn2 = $.obj(
   {
     type: "ArrowFunctionExpression",
     params: [
@@ -255,22 +242,7 @@ const compareFn2 = traverse(
     body: any([sortExpression2Ascending, sortExpression2Descending])
   },
   {
-    builders: [
-      {
-        get(obj, { state }) {
-          const { lhsObject, lhsProp, rhsObject, rhsProp, params } = state;
-          return lhsProp === rhsProp
-            ? [lhsObject, rhsObject].every(x =>
-                [params[0].name, params[1].name].includes(x)
-              )
-                ? { field: lhsProp, ascending: params[0].name === lhsObject }
-                : new Skip(
-                    `Both ${params[0].name} and ${params[1].name} need to be used in the sort expression.`
-                  )
-            : new Skip(``);
-        }
-      }
-    ]
+    build: () => ({ state }) => getSortExpression2(state)
   }
 );
 
@@ -286,7 +258,7 @@ export default function(state, config) {
           name: "sort"
         }
       },
-      arguments: array([any([compareFn1, compareFn2])])
+      arguments: array([any([compareFn2])])
     },
     [
       { modifiers: { object: path => path.node } },
@@ -300,8 +272,7 @@ export default function(state, config) {
     {
       builders: [
         {
-          get: (obj, { state }) =>
-            sort(state.query, { fields: state.arguments })
+          get: (obj, { state }) => sort(state.query, { fields: state.arguments })
         }
       ]
     }

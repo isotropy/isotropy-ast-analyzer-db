@@ -1,18 +1,11 @@
-import { traverse, any } from "chimpanzee";
+import { builtins as $, any } from "chimpanzee";
 
 export default function(schemas) {
   return (state, config) =>
-    traverse(
+    $.obj(
       (obj, context, keys, parents, parentKeys) =>
-        any(schemas.map(fn => fn(state, config))).fn(
-          obj,
-          context,
-          keys,
-          parents,
-          parentKeys
-        ),
+        any(schemas.map(fn => fn(state, config))).fn(obj, context, keys, parents, parentKeys),
       {
-        defer: true,
         selector: "path",
         key: "query"
       }

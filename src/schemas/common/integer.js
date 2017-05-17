@@ -1,7 +1,7 @@
-import { capture, any, traverse } from "chimpanzee";
+import { builtins as $, capture, any } from "chimpanzee";
 
 function negativeInteger(key) {
-  return traverse(
+  return $.obj(
     {
       type: "UnaryExpression",
       operator: "-",
@@ -11,16 +11,16 @@ function negativeInteger(key) {
       }
     },
     {
-      builders: [{ get: (_, { state }) => ({ [key]: -state.val }) }]
+      build: () => ({ state }) => ({ [key]: -state.val })
     }
   );
 }
 
 function positiveInteger(key) {
-  return traverse({
+  return {
     type: "NumericLiteral",
     value: capture(key)
-  });
+  };
 }
 
 export default function integer(key) {

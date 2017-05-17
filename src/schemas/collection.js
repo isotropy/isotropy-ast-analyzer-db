@@ -20,16 +20,12 @@ export default function(state, config) {
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
-      builders: [
-        {
-          get: (obj, { state: { collection, root } }) =>
-            createCollection({
-              identifier: root.identifier,
-              db: root.db,
-              collection: collection
-            })
-        }
-      ]
+      build: obj => ({ state: { collection, root } }) =>
+        createCollection({
+          identifier: root.identifier,
+          db: root.db,
+          collection: collection
+        })
     }
   );
 }

@@ -39,22 +39,14 @@ function clean(obj) {
 describe("isotropy-ast-analyzer-db", () => {
   function run([description, dir, opts]) {
     it(`${description}`, () => {
-      const fixturePath = path.resolve(
-        __dirname,
-        "fixtures",
-        dir,
-        `fixture.js`
-      );
+      const fixturePath = path.resolve(__dirname, "fixtures", dir, `fixture.js`);
       const outputPath = path.resolve(__dirname, "fixtures", dir, `output.js`);
       const expected = require(`./fixtures/${dir}/expected`);
       const pluginInfo = makePlugin(opts || { simple: true });
 
       const babelResult = babel.transformFileSync(fixturePath, {
         plugins: [
-          [
-            pluginInfo.plugin,
-            (!opts || !opts.import) && { identifiers: ["db"] }
-          ],
+          [pluginInfo.plugin, (!opts || !opts.import) && { identifiers: ["db"] }],
           "transform-object-rest-spread"
         ],
         parserOpts: {
@@ -72,24 +64,24 @@ describe("isotropy-ast-analyzer-db", () => {
   const tests = [
     ["collection", "collection"],
     ["count", "count"],
-    // ['delete', 'delete'],
-    // ['import-select', 'import-select', { import: true }],
-    // ['import-update', 'import-update', { import: true }],
-    // ['insert', 'insert'],
-    ['map', 'map'],
-    ['map-slice', 'map-slice'],
-    // ['select', 'select'],
-    // ['select-count', 'select-count'],
-    // ['select-map', 'select-map'],
-    // ['select-slice', 'select-slice'],
-    // ['select-sort', 'select-sort'],
+    ["delete", "delete"],
+    ["import-select", "import-select", { import: true }],
+    ["import-update", "import-update", { import: true }],
+    ["insert", "insert"],
+    ["map", "map"],
+    ["map-slice", "map-slice"],
+    ["select", "select"],
+    ["select-count", "select-count"],
+    ["select-map", "select-map"],
+    ["select-slice", "select-slice"],
+    ["select-sort", "select-sort"],
     ["slice", "slice"],
     ["slice-map", "slice-map"],
     ["slice-single-param", "slice-single-param"],
-    // ["sort", "sort"],
-    // ["sort-alt", "sort-alt"],
-    // ["sort-slice", "sort-slice"]
-    // ['update', 'update'],
+    ["sort", "sort"],
+    ["sort-alt", "sort-alt"],
+    ["sort-slice", "sort-slice"],
+    ["update", "update"]
   ];
 
   for (const test of tests) {
