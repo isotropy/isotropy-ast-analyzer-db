@@ -1,14 +1,6 @@
 import { collection, map } from "./";
-import {
-  capture,
-  composite,
-  any,
-  array,
-  map as mapResult,
-  optionalItem
-} from "chimpanzee";
+import { capture, composite, any, array, map as mapResult, optionalItem } from "chimpanzee";
 import { slice } from "../db-statements";
-import { defer } from "../chimpanzee-tools";
 
 export default function(state, config) {
   return composite(
@@ -16,7 +8,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: defer([collection, map])(state, config),
+        object: any([collection, map].map(fn => fn(state, config))),
         property: {
           type: "Identifier",
           name: "slice"

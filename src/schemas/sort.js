@@ -1,6 +1,5 @@
 import integer from "./common/integer";
 import { collection, select, slice } from "./";
-import defer from "../chimpanzee-tools/defer";
 import R from "ramda";
 
 import {
@@ -252,7 +251,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: defer([collection]),
+        object: any([collection].map(fn => fn(state, config))),
         property: {
           type: "Identifier",
           name: "sort"

@@ -1,4 +1,4 @@
-import { capture, composite } from "chimpanzee";
+import { capture, composite, Match } from "chimpanzee";
 import { createCollection } from "../db-statements";
 import { root } from "./";
 
@@ -16,16 +16,36 @@ export default function(state, config) {
       }
     },
     [
-      { name: "default", modifiers: { object: path => path.node } },
-      { name: "path", modifiers: { property: (path, key) => path.get(key) } }
+      {
+        name: "default",
+        modifiers: {
+          object: path => {
+            debugger;
+            return path.node;
+          }
+        }
+      },
+      {
+        name: "path",
+        modifiers: {
+          property: (path, key) => {
+            debugger;
+            path.get(key);
+          }
+        }
+      }
     ],
     {
-      build: obj => ({ state: { collection, root } }) =>
-        createCollection({
-          identifier: root.identifier,
-          db: root.db,
-          collection: collection
-        })
+      build: obj => context => result => {
+        debugger;
+        return result instanceof Match
+          ? createCollection({
+              identifier: root.identifier,
+              db: root.db,
+              collection
+            })
+          : result;
+      }
     }
   );
 }

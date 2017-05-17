@@ -11,7 +11,7 @@ import {
 } from "chimpanzee";
 
 import { map } from "../db-statements";
-import { defer, print } from "../chimpanzee-tools";
+import { print } from "../chimpanzee-tools";
 import { collection, slice } from "./";
 
 export default function(state, config) {
@@ -21,7 +21,7 @@ export default function(state, config) {
       type: capture(),
       callee: {
         type: "MemberExpression",
-        object: defer([collection, slice])(state, config)
+        object: any([collection, slice].map(fn => fn(state, config)))
       },
       arguments: array(
         [
@@ -76,8 +76,7 @@ export default function(state, config) {
     {
       builders: [
         {
-          get: (obj, { state }) =>
-            map(state.query, { fields: state.fields[0].items })
+          get: (obj, { state }) => map(state.query, { fields: state.fields[0].items })
         }
       ]
     }
