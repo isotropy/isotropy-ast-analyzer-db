@@ -1,12 +1,12 @@
 import { collection } from "./";
-import { capture, composite, any } from "chimpanzee";
+import { capture, composite, any, Match } from "chimpanzee";
 import { length } from "../db-statements";
 
 export default function(state, config) {
   return composite(
     {
       type: "MemberExpression",
-      object: any([collection].map(fn => fn(state, config))),
+      object: any([collection].map(fn => fn(state, config)), { selector: "path" }),
       property: {
         type: "Identifier",
         name: "length"
@@ -17,7 +17,7 @@ export default function(state, config) {
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
-      build: obj => context => result => console.log("NXT1", result) || length(result)
+      build: obj => context => result => result instanceof Match ? length(result) : result
     }
   );
 }

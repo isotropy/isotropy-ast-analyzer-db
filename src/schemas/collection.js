@@ -19,31 +19,26 @@ export default function(state, config) {
       {
         name: "default",
         modifiers: {
-          object: path => {
-            debugger;
-            return path.node;
-          }
+          object: path => path.node
         }
       },
       {
         name: "path",
         modifiers: {
-          property: (path, key) => {
-            debugger;
-            path.get(key);
-          }
+          property: (path, key) => path.get(key)
         }
       }
     ],
     {
       build: obj => context => result => {
-        debugger;
         return result instanceof Match
-          ? createCollection({
-              identifier: root.identifier,
-              db: root.db,
-              collection
-            })
+          ? new Match(
+              createCollection({
+                identifier: result.value.root.identifier,
+                db: result.value.root.db,
+                collection: result.value.collection
+              })
+            )
           : result;
       }
     }
