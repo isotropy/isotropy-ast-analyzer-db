@@ -68,7 +68,7 @@ describe("isotropy-ast-analyzer-db", () => {
     // ["import-select", "import-select", { import: true }],
     // ["import-update", "import-update", { import: true }],
     // ["insert", "insert"],
-    // ["map", "map"],
+    ["map", "map"],
     // ["map-slice", "map-slice"],
     // ["select", "select"],
     // ["select-count", "select-count"],

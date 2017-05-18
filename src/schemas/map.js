@@ -21,7 +21,7 @@ export default function(state, config) {
       type: capture(),
       callee: {
         type: "MemberExpression",
-        object: any([collection, slice].map(fn => fn(state, config)))
+        object: any([collection].map(fn => fn(state, config)), { selector: "path" })
       },
       arguments: array(
         [
@@ -74,11 +74,11 @@ export default function(state, config) {
       }
     ],
     {
-      builders: [
-        {
-          get: (obj, { state }) => map(state.query, { fields: state.fields[0].items })
-        }
-      ]
+      build: obj => context => result =>
+        console.log(result.value.fields[0].items) ||
+        result instanceof Match
+          ? map(result.value.object, { fields: result.value.fields[0].items })
+          : result
     }
   );
 }
