@@ -75,7 +75,6 @@ export default function(state, config) {
     ],
     {
       build: obj => context => result =>
-        console.log(result.value.fields[0].items) ||
         result instanceof Match
           ? map(result.value.object, { fields: result.value.fields[0].items })
           : result
