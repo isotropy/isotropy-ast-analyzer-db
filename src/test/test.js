@@ -63,7 +63,7 @@ describe("isotropy-ast-analyzer-db", () => {
 
   const tests = [
     ["collection", "collection"],
-    // ["count", "count"],
+    ["count", "count"],
     // ["delete", "delete"],
     // ["import-select", "import-select", { import: true }],
     // ["import-update", "import-update", { import: true }],

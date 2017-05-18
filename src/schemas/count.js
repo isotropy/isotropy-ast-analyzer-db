@@ -17,7 +17,7 @@ export default function(state, config) {
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
-      build: obj => context => result => result instanceof Match ? length(result) : result
+      build: obj => context => result => result instanceof Match ? length(result.value.object) : result
     }
   );
 }
