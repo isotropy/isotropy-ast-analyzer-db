@@ -1,5 +1,14 @@
+import { source } from "../utils";
 import { collection, map } from "./";
-import { capture, composite, any, array, map as mapResult, optionalItem } from "chimpanzee";
+import {
+  parse,
+  capture,
+  composite,
+  any,
+  array,
+  map as mapResult,
+  optionalItem
+} from "chimpanzee";
 import { slice } from "../db-statements";
 
 export default function(state, config) {
@@ -8,7 +17,12 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: any([collection, map].map(fn => fn(state, config)), { selector: "path" }),
+        object: source([collection, map])(state, config),
+        // object: any(
+        //   [collection, map].map(fn => (obj, key, p, pk) => context =>
+        //     parse(fn(state, config))(obj, key, p, pk)(context)),
+        //   { selector: "path" }
+        // ),
         property: {
           type: "Identifier",
           name: "slice"

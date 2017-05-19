@@ -11,7 +11,7 @@ import {
 } from "chimpanzee";
 
 import { map } from "../db-statements";
-import { print } from "../chimpanzee-tools";
+import { source } from "../utils";
 import { collection, slice } from "./";
 
 export default function(state, config) {
@@ -20,7 +20,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: any([collection].map(fn => fn(state, config)), { selector: "path" })
+        object: source([collection, slice])(state, config)
       },
       arguments: array(
         [
