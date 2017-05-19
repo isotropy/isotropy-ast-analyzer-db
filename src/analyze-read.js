@@ -24,7 +24,7 @@ function makeAnalyzer(schemas, path, state, config) {
     db.todos.sort()
 */
 export function analyzeCallExpression(path, state, config) {
-  return makeAnalyzer([schemas.map, schemas.slice], path, state, config);
+  return makeAnalyzer([schemas.map, schemas.slice, schemas.sort], path, state, config);
 }
 
 /*

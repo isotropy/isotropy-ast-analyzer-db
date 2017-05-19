@@ -32,13 +32,11 @@ export default function(state, config) {
     {
       build: obj => context => result => {
         return result instanceof Match
-          ? new Match(
-              createCollection({
-                identifier: result.value.root.identifier,
-                db: result.value.root.db,
-                collection: result.value.collection
-              })
-            )
+          ? createCollection({
+              identifier: result.value.root.identifier,
+              db: result.value.root.db,
+              collection: result.value.collection
+            })
           : result;
       }
     }

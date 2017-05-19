@@ -1,7 +1,4 @@
-import integer from "./common/integer";
-import { collection, select, slice } from "./";
 import R from "ramda";
-
 import {
   builtins as $,
   capture,
@@ -14,6 +11,9 @@ import {
   Skip
 } from "chimpanzee";
 
+import { source } from "../utils";
+import { collection, select, slice } from "./";
+import integer from "./common/integer";
 import { sort } from "../db-statements";
 
 const operators = any([">", "<", ">=", "<=", "==="].map(i => literal(i)));
@@ -167,7 +167,8 @@ const compareFn1 = $.obj(
     }
   },
   {
-    build: () => ({ state }) => getSortExpression1(state)
+    build: obj => context => result =>
+      console.log("N!") || result instanceof Match ? getSortExpression1(result.value) : result
   }
 );
 
@@ -182,7 +183,7 @@ async function getTodos(who) {
   // Descending
   return db.todos
     .sort(
-      (x, y) => -(x.assignee - y.assignee)
+      (x, y) => y.assignee - x.assignee
       );
 }
 */
@@ -241,7 +242,8 @@ const compareFn2 = $.obj(
     body: any([sortExpression2Ascending, sortExpression2Descending])
   },
   {
-    build: () => ({ state }) => getSortExpression2(state)
+    build: obj => context => result =>
+      console.log("N!!", result.value.params, "///////////", result.value.body) || result instanceof Match ? getSortExpression2(result.value) : result
   }
 );
 
@@ -251,7 +253,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: any([collection].map(fn => fn(state, config))),
+        object: source([collection])(state, config),
         property: {
           type: "Identifier",
           name: "sort"
@@ -269,11 +271,10 @@ export default function(state, config) {
       }
     ],
     {
-      builders: [
-        {
-          get: (obj, { state }) => sort(state.query, { fields: state.arguments })
-        }
-      ]
+      build: obj => context => result =>
+        console.log(result.value.arguments) || result instanceof Match
+          ? sort(result.value.object, { fields: result.value.arguments })
+          : result
     }
   );
 }

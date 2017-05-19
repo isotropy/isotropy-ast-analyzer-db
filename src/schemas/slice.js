@@ -7,7 +7,8 @@ import {
   any,
   array,
   map as mapResult,
-  optionalItem
+  optionalItem,
+  Match
 } from "chimpanzee";
 import { slice } from "../db-statements";
 
@@ -56,10 +57,12 @@ export default function(state, config) {
     ],
     {
       build: obj => context => result =>
-        slice(result.value.object, {
-          from: result.value.args[0],
-          to: result.value.args[1]
-        })
+        result instanceof Match
+          ? slice(result.value.object, {
+              from: result.value.args[0],
+              to: result.value.args[1]
+            })
+          : result
     }
   );
 }
