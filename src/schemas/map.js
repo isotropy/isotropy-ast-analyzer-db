@@ -17,8 +17,7 @@ import { collection, slice } from "./";
 export default function(state, config) {
   return composite(
     {
-      //type: "CallExpression",
-      type: capture(),
+      type: "CallExpression",
       callee: {
         type: "MemberExpression",
         object: any([collection].map(fn => fn(state, config)), { selector: "path" })

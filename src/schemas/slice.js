@@ -8,7 +8,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: any([collection, map].map(fn => fn(state, config))),
+        object: any([collection, map].map(fn => fn(state, config)), { selector: "path" }),
         property: {
           type: "Identifier",
           name: "slice"
@@ -41,15 +41,11 @@ export default function(state, config) {
       { name: "path", modifiers: { property: (path, key) => path.get(key) } }
     ],
     {
-      builders: [
-        {
-          get: (obj, { state }) =>
-            slice(state.query, {
-              from: state.args[0],
-              to: state.args[1]
-            })
-        }
-      ]
+      build: obj => context => result =>
+        slice(result.value.object, {
+          from: result.value.args[0],
+          to: result.value.args[1]
+        })
     }
   );
 }
