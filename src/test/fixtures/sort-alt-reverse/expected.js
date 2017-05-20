@@ -3,7 +3,7 @@ module.exports = {
   method: "sort",
   fields: [
     {
-      field: "assignee",
+      field: "priority",
       ascending: false
     }
   ],

@@ -1,5 +1,5 @@
 import { source } from "../utils";
-import { collection, map } from "./";
+import { collection, map, sort } from "./";
 import {
   parse,
   capture,
@@ -18,7 +18,7 @@ export default function(state, config) {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: source([collection, map])(state, config),
+        object: source([collection, map, sort])(state, config),
         // object: any(
         //   [collection, map].map(fn => (obj, key, p, pk) => context =>
         //     parse(fn(state, config))(obj, key, p, pk)(context)),
