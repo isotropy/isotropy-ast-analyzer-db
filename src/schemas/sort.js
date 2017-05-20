@@ -168,7 +168,7 @@ const compareFn1 = $.obj(
   },
   {
     build: obj => context => result =>
-      console.log("N!") || result instanceof Match ? getSortExpression1(result.value) : result
+      result instanceof Match ? getSortExpression1(result.value) : result
   }
 );
 
@@ -184,6 +184,19 @@ async function getTodos(who) {
   return db.todos
     .sort(
       (x, y) => y.assignee - x.assignee
+      );
+
+  //well, we also support
+  // Ascending
+  return db.todos
+    .sort(
+      (x, y) => -(x.assignee - y.assignee)
+    );
+
+  // Descending
+  return db.todos
+    .sort(
+      (x, y) => -(y.assignee - x.assignee)
       );
 }
 */
@@ -220,10 +233,22 @@ const sortExpression2Descending = {
   argument: sortExpression2Ascending
 };
 
-function getSortExpression2({ lhsObject, lhsProp, rhsObject, rhsProp, operator }) {
-  return lhsProp === rhsProp
-    ? { field: lhsProp, ascending: operator === "-" }
-    : new Skip("The sort expression must reference the same property on compared objects.");
+function getSortExpression2({
+  param1,
+  param2,
+  lhsObject,
+  lhsProp,
+  rhsObject,
+  rhsProp,
+  operator
+}) {
+  const getSortOrder = negated =>
+    (!negated && param1 === lhsObject) || (negated && param1 === rhsObject);
+  return [param1, param2].every(p => [lhsObject, rhsObject].includes(p))
+    ? lhsProp === rhsProp
+        ? { field: lhsProp, ascending: getSortOrder(operator === "-") }
+        : new Skip(`The sort expression must reference the same property on compared objects.`)
+    : new Skip(`The sort expression must reference parameters ${param1} and ${param2}.`);
 }
 
 const compareFn2 = $.obj(
@@ -243,7 +268,13 @@ const compareFn2 = $.obj(
   },
   {
     build: obj => context => result =>
-      console.log("N!!", result.value.params, "///////////", result.value.body) || result instanceof Match ? getSortExpression2(result.value) : result
+      result instanceof Match
+        ? getSortExpression2({
+            param1: result.value.params[0].name,
+            param2: result.value.params[1].name,
+            ...result.value.body
+          })
+        : result
   }
 );
 
@@ -272,7 +303,7 @@ export default function(state, config) {
     ],
     {
       build: obj => context => result =>
-        console.log(result.value.arguments) || result instanceof Match
+        result instanceof Match
           ? sort(result.value.object, { fields: result.value.arguments })
           : result
     }
