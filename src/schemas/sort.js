@@ -42,7 +42,7 @@ function getSortExpression1({
       Variants of (a,b) => a.total > b.total ? 1 : a.total < b.total ? -1 : 0;
       Terminology:
         1   Swap
-        0   same
+        0   Same
        -1   Keep
     */
     lhsProp1 === rhsProp1 && lhsProp1 === lhsProp2 && lhsProp1 === rhsProp2
@@ -168,6 +168,7 @@ const compareFn1 = $.obj(
   },
   {
     build: obj => context => result =>
+      console.log("::::", result) ||
       result instanceof Match ? getSortExpression1(result.value) : result
   }
 );
@@ -290,7 +291,7 @@ export default function(state, config) {
           name: "sort"
         }
       },
-      arguments: array([any([compareFn2])])
+      arguments: array([any([compareFn1, compareFn2])])
     },
     [
       { modifiers: { object: path => path.node } },

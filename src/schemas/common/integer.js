@@ -1,4 +1,4 @@
-import { builtins as $, capture, any } from "chimpanzee";
+import { builtins as $, capture, any, Match } from "chimpanzee";
 
 function negativeInteger(key) {
   return $.obj(
@@ -11,7 +11,8 @@ function negativeInteger(key) {
       }
     },
     {
-      build: () => ({ state }) => ({ [key]: -state.val })
+      build: obj => context => result =>
+        result instanceof Match ? new Match(-result.val) : result
     }
   );
 }
