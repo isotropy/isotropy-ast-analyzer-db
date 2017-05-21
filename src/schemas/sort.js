@@ -25,70 +25,84 @@ async function getTodos(who) {
       (x, y) => x.assignee > y.assignee ? 1 : x.assignee === y.assignee ? 0 : -1
     );
 }
+
+  Variants of (a,b) => a.total > b.total ? 1 : a.total < b.total ? -1 : 0;
+  Terminology:
+    1   Swap
+    0   Same
+   -1   Keep
+
 */
 function getSortExpression1({
+  param1,
+  param2,
+  lhs1,
   lhsProp1,
+  rhs1,
   rhsProp1,
   operator1,
   val1,
+  lhs2,
   lhsProp2,
+  rhs2,
   rhsProp2,
   operator2,
   val2,
   val3
 }) {
-  return (
-    /*
-      Variants of (a,b) => a.total > b.total ? 1 : a.total < b.total ? -1 : 0;
-      Terminology:
-        1   Swap
-        0   Same
-       -1   Keep
-    */
-    lhsProp1 === rhsProp1 && lhsProp1 === lhsProp2 && lhsProp1 === rhsProp2
-      ? R.difference([1, 0, -1], [val1, val2, val3]).length === []
-          ? (() => {
-              const indexOf = what => [val1, val2, val3].findIndex(what);
-              const operatorOf = what => [operator1, operator2][indexOf(what)];
-
-              const [indexSwap, indexSame, indexKeep] = [1, 0, -1].map(indexOf);
-              const [opSwap, opSame, opKeep] = [1, 0, -1].map(operatorOf);
-
-              return indexSame === 2 || opSame === "==="
-                ? (() => {
-                    //1 is either val1 or val2
-                    return indexSwap < 2
-                      ? (() => {
-                          return [">", ">="].includes(opSwap)
-                            ? ["<", "<="].includes(opSwap) || indexKeep === 2
-                                ? { field: lhsProp1, ascending: true }
-                                : new Skip(
-                                    "The operator in the comparison returning -1 should always be the opposite of the operator which reutrns 1."
-                                  )
-                            : ["<", "<="].includes(opSwap)
-                                ? [">", ">="].includes(opSwap) || indexKeep === 2
-                                    ? { field: lhsProp1, ascending: false }
-                                    : new Skip(
-                                        "The operator in the comparison returning -1 should always be the opposite of the operator which reutrns 1."
-                                      )
-                                : new Skip("Incorrect sort expression.");
-                        })()
-                      : //1 is val3, right-most.
-                        [">", ">="].includes(opKeep)
-                          ? { field: lhsProp1, ascending: false }
-                          : ["<", "<="].includes(opKeep)
-                              ? { field: lhsProp1, ascending: true }
-                              : new Skip("Incorrect sort expression.");
-                  })()
+  return lhsProp1 === rhsProp1 && lhsProp1 === lhsProp2 && lhsProp1 === rhsProp2
+    ? (() => {
+        //If x precedes y then 1 else -1
+        const paramOrder = (p1, p2) =>
+          param1 === p1 && param2 === p2
+            ? 1
+            : param1 === p2 && param2 === p1
+                ? -1
                 : new Skip(
-                    "The operator in the comparison returning 0 should always be '==='."
+                    `The sort expression must reference parameters ${param1} and ${param2}.`
                   );
+
+        // > is 1, < is -1, == is 0
+        const legitOperators = [">", ">=", "<", "<=", "==", "==="];
+        const operatorVal = o =>
+          [">", ">="].includes(o)
+            ? 1
+            : ["<", "<="].includes(o)
+                ? -1
+                : ["==", "==="].includes(o)
+                    ? 0
+                    : new Skip(
+                        `Unknown operator ${[operator1, operator2].find(o => !legitOperators.includes(o))} was found in the sort expression.`
+                      );
+
+        //val > 1 is 1, val < 0 is -1, 0 is 0
+        const stdVal = val =>
+          typeof val === "number"
+            ? val > 1 ? 1 : val < 0 ? -1 : 0
+            : new Skip(
+                `The sort expression is invalid. Should return less than zero, zero and greater than zero according to JS specifications.`
+              );
+
+        const normalized = [
+          [[lhs1, rhs1], operator1, val1],
+          [[lhs2, rhs2], operator2, val2]
+        ].map(([[lhs, rhs], operator]) => [paramOrder(lhs, rhs), operatorVal(operator), val]);
+
+        const nonResult = R.flatten(normalized).find(v => v instanceof Skip);
+
+        return !nonResult
+          ? (() => {
+              const matrix = normalized.map(([p, o, v]) => p * o * v).concat(val3);
+              const sum = matrix.reduce((acc, i) => acc + i, 0);
+              return sum === 2
+                ? { field: lhsProp1, ascending: true }
+                : sum === -2
+                    ? { field: lhsProp1, ascending: false }
+                    : new Skip(`Invalid sort expression.`);
             })()
-          : new Skip(
-              "The sort expression is incorrect. Should return 1, 0 and -1 according to JS specifications."
-            )
-      : new Skip("All fields in the sort expression must be the same.")
-  );
+          : nonResult;
+      })()
+    : new Skip("All fields in the sort expression must be the same.");
 }
 
 const compareFn1 = $.obj(
@@ -168,8 +182,9 @@ const compareFn1 = $.obj(
   },
   {
     build: obj => context => result =>
-      console.log("::::", result) ||
-      result instanceof Match ? getSortExpression1(result.value) : result
+      console.log("::::", result) || result instanceof Match
+        ? getSortExpression1(result.value)
+        : result
   }
 );
 
