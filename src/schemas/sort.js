@@ -52,59 +52,66 @@ function getSortExpression1({
 }) {
   const INVALID_EXPR_ERROR = `The sort expression is invalid. Should return less than zero, zero and greater than zero according to JS specifications.`;
 
+  //Make sure all the properties are the same. eg: "field" in x.field > y.field ? 1 : x.field === ...
   return lhsProp1 === rhsProp1 && lhsProp1 === lhsProp2 && lhsProp1 === rhsProp2
     ? [val1, val2, val3].every(val => typeof val === "number")
         ? (() => {
-            //val > 1 is 1, val < 0 is -1, 0 is 0
+            //val > 0 is 1, val < 0 is -1, 0 is 0
             const stdVal = val =>
               typeof val === "number"
-                ? val > 1 ? 1 : val < 0 ? -1 : 0
+                ? val > 0 ? 1 : val < 0 ? -1 : 0
                 : new Skip(INVALID_EXPR_ERROR);
 
-            const expr = [
+            const ternaryExpr = [
               { lhs: lhs1, rhs: rhs1, operator: operator1, val: stdVal(val1) },
               { lhs: lhs2, rhs: rhs2, operator: operator2, val: stdVal(val2) }
             ];
 
-            const xGreaterThanY = expr.find(
-              ({ lhs, rhs, operator, val }) =>
-                (param1 === lhs && param2 === rhs && [">", ">="].includes(operator)) ||
-                (param2 === lhs && param1 === rhs && ["<", "<="].includes(operator))
-            );
+            const xGreaterThanY = ({ lhs, rhs, operator, val }) =>
+              (param1 === lhs && param2 === rhs && [">", ">="].includes(operator)) ||
+              (param2 === lhs && param1 === rhs && ["<", "<="].includes(operator));
 
-            const yGreaterThanX = expr.find(
-              ({ lhs, rhs, operator, val }) =>
-                (param2 === lhs && param1 === rhs && [">", ">="].includes(operator)) ||
-                (param1 === lhs && param2 === rhs && ["<", "<="].includes(operator))
-            );
+            const yGreaterThanX = ({ lhs, rhs, operator, val }) =>
+              (param2 === lhs && param1 === rhs && [">", ">="].includes(operator)) ||
+              (param1 === lhs && param2 === rhs && ["<", "<="].includes(operator));
 
-            const xEqualsY = expr.find(
-              ({ lhs, rhs, operator, val }) =>
-                param1 === lhs && param2 === rhs && ["==", "==="].includes(operator)
-            );
+            const xEqualsY = ({ lhs, rhs, operator, val }) =>
+              param1 === lhs && param2 === rhs && ["==", "==="].includes(operator);
 
             const expressions = [
               [xGreaterThanY, yGreaterThanX, 1],
               [yGreaterThanX, xGreaterThanY, -1]
             ];
 
-            const result = expressions.find(
-              ([first, second, ascendingVal]) =>
-                first(expr)
-                  ? () => {
-                      const firstVal = first(expr).val;
-                      const secondVal = second(expr)
-                        ? second(expr).val
-                        : xEqualsY(expr) ? stdVal(val3) : new Skip(INVALID_EXPR_ERROR);
+            const result = (function loop(_expressions) {
+              const [first, second, ascendingVal] = _expressions[0];
 
-                      return !(secondVal instanceof Skip)
-                        ? firstVal === -secondVal
-                            ? { field: lhsProp1, ascending: firstVal === ascendingVal }
-                            : new Skip(INVALID_EXPR_ERROR)
-                        : secondVal;
-                    }
-                  : undefined
-            );
+              const result = ternaryExpr.find(first)
+                ? (() => {
+                    const firstVal = ternaryExpr.find(first).val;
+                    const secondVal = ternaryExpr.find(second)
+                      ? ternaryExpr.find(second).val
+                      : ternaryExpr.find(xEqualsY)
+                          ? stdVal(val3)
+                          : new Skip(INVALID_EXPR_ERROR);
+
+                    return !(secondVal instanceof Skip)
+                      ? firstVal === -secondVal
+                          ? {
+                              field: lhsProp1,
+                              ascending: firstVal === ascendingVal
+                            }
+                          : new Skip(INVALID_EXPR_ERROR)
+                      : secondVal;
+                  })()
+                : undefined;
+
+              return (
+                result || (_expressions.length > 1 ? loop(_expressions.slice(1)) : undefined)
+              );
+            })(expressions);
+
+            return result;
           })()
         : new Skip(INVALID_EXPR_ERROR)
     : new Skip(`Sort expression should reference the same fields in the ternary expression.`);
@@ -187,8 +194,12 @@ const compareFn1 = $.obj(
   },
   {
     build: obj => context => result =>
-      console.log("::::", result) || result instanceof Match
-        ? getSortExpression1(result.value)
+      result instanceof Match
+        ? getSortExpression1({
+            param1: result.value.params[0].name,
+            param2: result.value.params[1].name,
+            ...result.value
+          })
         : result
   }
 );

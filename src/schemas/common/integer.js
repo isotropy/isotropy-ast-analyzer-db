@@ -12,7 +12,7 @@ function negativeInteger(key) {
     },
     {
       build: obj => context => result =>
-        result instanceof Match ? new Match(-result.val) : result
+        result instanceof Match ? new Match({ [key]: -result.value.val }) : result
     }
   );
 }
