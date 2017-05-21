@@ -50,59 +50,64 @@ function getSortExpression1({
   val2,
   val3
 }) {
+  const INVALID_EXPR_ERROR = `The sort expression is invalid. Should return less than zero, zero and greater than zero according to JS specifications.`;
+
   return lhsProp1 === rhsProp1 && lhsProp1 === lhsProp2 && lhsProp1 === rhsProp2
-    ? (() => {
-        //If x precedes y then 1 else -1
-        const paramOrder = (p1, p2) =>
-          param1 === p1 && param2 === p2
-            ? 1
-            : param1 === p2 && param2 === p1
-                ? -1
-                : new Skip(
-                    `The sort expression must reference parameters ${param1} and ${param2}.`
-                  );
+    ? [val1, val2, val3].every(val => typeof val === "number")
+        ? (() => {
+            //val > 1 is 1, val < 0 is -1, 0 is 0
+            const stdVal = val =>
+              typeof val === "number"
+                ? val > 1 ? 1 : val < 0 ? -1 : 0
+                : new Skip(INVALID_EXPR_ERROR);
 
-        // > is 1, < is -1, == is 0
-        const legitOperators = [">", ">=", "<", "<=", "==", "==="];
-        const operatorVal = o =>
-          [">", ">="].includes(o)
-            ? 1
-            : ["<", "<="].includes(o)
-                ? -1
-                : ["==", "==="].includes(o)
-                    ? 0
-                    : new Skip(
-                        `Unknown operator ${[operator1, operator2].find(o => !legitOperators.includes(o))} was found in the sort expression.`
-                      );
+            const expr = [
+              { lhs: lhs1, rhs: rhs1, operator: operator1, val: stdVal(val1) },
+              { lhs: lhs2, rhs: rhs2, operator: operator2, val: stdVal(val2) }
+            ];
 
-        //val > 1 is 1, val < 0 is -1, 0 is 0
-        const stdVal = val =>
-          typeof val === "number"
-            ? val > 1 ? 1 : val < 0 ? -1 : 0
-            : new Skip(
-                `The sort expression is invalid. Should return less than zero, zero and greater than zero according to JS specifications.`
-              );
+            const xGreaterThanY = expr.find(
+              ({ lhs, rhs, operator, val }) =>
+                (param1 === lhs && param2 === rhs && [">", ">="].includes(operator)) ||
+                (param2 === lhs && param1 === rhs && ["<", "<="].includes(operator))
+            );
 
-        const normalized = [
-          [[lhs1, rhs1], operator1, val1],
-          [[lhs2, rhs2], operator2, val2]
-        ].map(([[lhs, rhs], operator]) => [paramOrder(lhs, rhs), operatorVal(operator), val]);
+            const yGreaterThanX = expr.find(
+              ({ lhs, rhs, operator, val }) =>
+                (param2 === lhs && param1 === rhs && [">", ">="].includes(operator)) ||
+                (param1 === lhs && param2 === rhs && ["<", "<="].includes(operator))
+            );
 
-        const nonResult = R.flatten(normalized).find(v => v instanceof Skip);
+            const xEqualsY = expr.find(
+              ({ lhs, rhs, operator, val }) =>
+                param1 === lhs && param2 === rhs && ["==", "==="].includes(operator)
+            );
 
-        return !nonResult
-          ? (() => {
-              const matrix = normalized.map(([p, o, v]) => p * o * v).concat(val3);
-              const sum = matrix.reduce((acc, i) => acc + i, 0);
-              return sum === 2
-                ? { field: lhsProp1, ascending: true }
-                : sum === -2
-                    ? { field: lhsProp1, ascending: false }
-                    : new Skip(`Invalid sort expression.`);
-            })()
-          : nonResult;
-      })()
-    : new Skip("All fields in the sort expression must be the same.");
+            const expressions = [
+              [xGreaterThanY, yGreaterThanX, 1],
+              [yGreaterThanX, xGreaterThanY, -1]
+            ];
+
+            const result = expressions.find(
+              ([first, second, ascendingVal]) =>
+                first(expr)
+                  ? () => {
+                      const firstVal = first(expr).val;
+                      const secondVal = second(expr)
+                        ? second(expr).val
+                        : xEqualsY(expr) ? stdVal(val3) : new Skip(INVALID_EXPR_ERROR);
+
+                      return !(secondVal instanceof Skip)
+                        ? firstVal === -secondVal
+                            ? { field: lhsProp1, ascending: firstVal === ascendingVal }
+                            : new Skip(INVALID_EXPR_ERROR)
+                        : secondVal;
+                    }
+                  : undefined
+            );
+          })()
+        : new Skip(INVALID_EXPR_ERROR)
+    : new Skip(`Sort expression should reference the same fields in the ternary expression.`);
 }
 
 const compareFn1 = $.obj(
