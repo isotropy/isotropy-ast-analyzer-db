@@ -1,51 +1,75 @@
-// function memberOnFilterParam(path, filterParam) {
-//   return path.type === "MemberExpression" && path.get("object").type === "Identifier" && path.get("object").node.name === filterParam.node.name;
-// }
-//
-// function getOperator(op) {
-//   const map = [
-//     [["==", "==="], "$eq"],
-//     [[">"], "$gt"],
-//     [[">="], "$gte"],
-//     [["<="], "$lte"],
-//     [["<"], "$lt"],
-//     [["!=", !==], "$ne"],
-//     [[">"], "$gt"],
-//     [[">"], "$gt"],
-//   ]
-// }
-//
-// const visitors = {
-//   LogicalExpression(path, filterParam) {
-//     const node = path.node;
-//     const left = path.get("left");
-//     const right = path.get("right");
-//     const key = node.operator === "&&" ? "$and" : node.operator === "||" ? "$or" : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`);
-//     return !(key instanceof Skip)
-//       ? { [key]: [ visitors[left.type](left, filterParam), visitors[right.type](right, filterParam) ] }
-//       : key;
-//   },
-//
-//   BinaryExpression(path, filterParam) {
-//     const node = path.node;
-//     const left = path.get("left");
-//     const right = path.get("right");
-//
-//     //See if left or right references the collection variable.
-//     const { field, operator, value } = memberOnFilterParam(left, filterParam) && !(memberOnFilterParam(right, filterParam))
-//       ? { field: left, operator:  }
-//
-//     return ["==", "==="].includes(node.operator)
-//       ? {  }
-//
-//      === "===" ? "$and" : node.operator === "||" ? "$or" : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`);
-//     return !(key instanceof Skip)
-//       ? { [key]: [ visitors[left.type](left), visitors[right.type](right) ] }
-//       : key;
-//   }
-//
-// }
-//
-// export default function(path) {
-//   return path.type === "LogicalExpression"
-// }
+function memberOnFilterParam(path, filterParam) {
+  return (
+    path.type === "MemberExpression" &&
+    path.get("object").type === "Identifier" &&
+    path.get("object").node.name === filterParam.node.name
+  );
+}
+
+function getOperator(op, reverse) {
+  const map = [
+    [["==", "==="], ["$eq"]],
+    [[">"], ["$gt", "$lte"]],
+    [[">="], ["$gte", "$lt"]],
+    [["<="], ["$lte", "$gt"]],
+    [["<"], ["$lt", "$gte"]],
+    [["!=", "!=="], ["$ne"]]
+  ];
+  const match = map.find(([jsOperators, dbOperators]) =>
+    jsOperators.includes(op.get("operator").node)
+  );
+  return match ? (!reverse ? match[1][0] : match[1][1] || match[1][0]) : undefined;
+}
+
+const visitors = {
+  LogicalExpression(path, filterParam) {
+    const node = path.node;
+    const left = path.get("left");
+    const right = path.get("right");
+    const key = node.operator === "&&"
+      ? "$and"
+      : node.operator === "||"
+          ? "$or"
+          : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`);
+    return !(key instanceof Skip)
+      ? {
+          [key]: [
+            visitors[left.type](left, filterParam),
+            visitors[right.type](right, filterParam)
+          ]
+        }
+      : key;
+  },
+
+  BinaryExpression(path, filterParam) {
+    const node = path.node;
+    const left = path.get("left");
+    const right = path.get("right");
+
+    //See if left or right references the collection variable.
+    const parts = [[left, right, false], [right, left, true]];
+    const fieldOpAndVal = (function loop(_parts) {
+      const [first, second, reverse] = _parts[0];
+      const result = memberOnFilterParam(first, filterParam) &&
+        !memberOnFilterParam(second, filterParam)
+        ? { field: first, operator: getOperator(path.get("operator")), value: second }
+        : undefined;
+      return (
+        result ||
+        (_parths.length > 1
+          ? loop(_parts.slice(1))
+          : new Skip(
+              `Cannot analyze predicate expression involving ${left.node} and ${right.node}.`
+            ))
+      );
+    })(parts);
+
+    return fieldOpAndVal;
+  }
+};
+
+export default function(path) {
+  return !(key instanceof Skip)
+    ? { [key]: [visitors[left.type](left), visitors[right.type](right)] }
+    : key;
+}
