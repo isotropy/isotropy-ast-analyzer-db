@@ -19,11 +19,6 @@ export default function(state, config) {
       callee: {
         type: "MemberExpression",
         object: source([collection, map, sort])(state, config),
-        // object: any(
-        //   [collection, map].map(fn => (obj, key, p, pk) => context =>
-        //     parse(fn(state, config))(obj, key, p, pk)(context)),
-        //   { selector: "path" }
-        // ),
         property: {
           type: "Identifier",
           name: "slice"

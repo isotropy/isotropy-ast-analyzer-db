@@ -57,24 +57,27 @@ function getSortExpression1({
     ? [val1, val2, val3].every(val => typeof val === "number")
         ? (() => {
             //val > 0 is 1, val < 0 is -1, 0 is 0
-            const stdVal = val =>
+            const normalizeValue = val =>
               typeof val === "number"
                 ? val > 0 ? 1 : val < 0 ? -1 : 0
                 : new Skip(INVALID_EXPR_ERROR);
 
             const ternaryExpr = [
-              { lhs: lhs1, rhs: rhs1, operator: operator1, val: stdVal(val1) },
-              { lhs: lhs2, rhs: rhs2, operator: operator2, val: stdVal(val2) }
+              { lhs: lhs1, rhs: rhs1, operator: operator1, val: normalizeValue(val1) },
+              { lhs: lhs2, rhs: rhs2, operator: operator2, val: normalizeValue(val2) }
             ];
 
+            //This picks the part of the ternary which has x.field > y.field or y.field < x.field
             const xGreaterThanY = ({ lhs, rhs, operator, val }) =>
               (param1 === lhs && param2 === rhs && [">", ">="].includes(operator)) ||
               (param2 === lhs && param1 === rhs && ["<", "<="].includes(operator));
 
+            //This picks the part of the ternary which has y.field > x.field or x.field < y.field
             const yGreaterThanX = ({ lhs, rhs, operator, val }) =>
               (param2 === lhs && param1 === rhs && [">", ">="].includes(operator)) ||
               (param1 === lhs && param2 === rhs && ["<", "<="].includes(operator));
 
+            //This picks the part of the ternary which has x.field === y.field
             const xEqualsY = ({ lhs, rhs, operator, val }) =>
               param1 === lhs && param2 === rhs && ["==", "==="].includes(operator);
 
@@ -92,7 +95,7 @@ function getSortExpression1({
                     const secondVal = ternaryExpr.find(second)
                       ? ternaryExpr.find(second).val
                       : ternaryExpr.find(xEqualsY)
-                          ? stdVal(val3)
+                          ? normalizeValue(val3)
                           : new Skip(INVALID_EXPR_ERROR);
 
                     return !(secondVal instanceof Skip)
