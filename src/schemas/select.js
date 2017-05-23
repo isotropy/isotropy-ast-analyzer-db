@@ -1,5 +1,3 @@
-import { source } from "../utils";
-import { collection, map, sort } from "./";
 import {
   parse,
   capture,
@@ -10,7 +8,11 @@ import {
   optionalItem,
   Match
 } from "chimpanzee";
-import { slice } from "../db-statements";
+
+import { source } from "../utils";
+import { collection, map, sort } from "./";
+import { filter } from "../db-statements";
+import predicate from "./common/predicate";
 
 export default function(state, config) {
   return composite(
@@ -24,27 +26,16 @@ export default function(state, config) {
           name: "filter"
         }
       },
-      arguments: array(
-        [
-          mapResult(
-            {
-              type: "NumericLiteral",
-              value: capture()
-            },
-            s => s.value
-          ),
-          optionalItem(
-            mapResult(
-              {
-                type: "NumericLiteral",
-                value: capture()
-              },
-              s => s.value
-            )
-          )
-        ],
-        { key: "args" }
-      )
+      arguments: [
+        {
+          type: "ArrowFunctionExpression",
+          generator: false,
+          expression: true,
+          async: false,
+          params: capture({ selector: "path" }),
+          body: capture({ selector: "path" })
+        }
+      ]
     },
     [
       { name: "default", modifiers: { object: path => path.node } },
@@ -53,9 +44,11 @@ export default function(state, config) {
     {
       build: obj => context => result =>
         result instanceof Match
-          ? slice(result.value.object, {
-              from: result.value.args[0],
-              to: result.value.args[1]
+          ? filter(result.value.object, {
+              filter: predicate(
+                result.value.arguments[0].body,
+                result.value.arguments[0].params[0]
+              )
             })
           : result
     }

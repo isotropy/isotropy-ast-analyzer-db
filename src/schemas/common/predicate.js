@@ -1,3 +1,5 @@
+import { Match, Skip } from "chimpanzee";
+
 function memberOnFilterParam(path, filterParam) {
   return (
     path.type === "MemberExpression" &&
@@ -15,14 +17,13 @@ function getOperator(op, reverse) {
     [["<"], ["$lt", "$gte"]],
     [["!=", "!=="], ["$ne"]]
   ];
-  const match = map.find(([jsOperators, dbOperators]) =>
-    jsOperators.includes(op.get("operator").node)
-  );
+  const match = map.find(([jsOperators, dbOperators]) => jsOperators.includes(op.node));
   return match ? (!reverse ? match[1][0] : match[1][1] || match[1][0]) : undefined;
 }
 
 const visitors = {
   LogicalExpression(path, filterParam) {
+    console.log("::::", path.get("right").type);
     const node = path.node;
     const left = path.get("left");
     const right = path.get("right");
@@ -65,11 +66,15 @@ const visitors = {
     })(parts);
 
     return fieldOpAndVal;
+  },
+
+  MemberExpression(path, filterParam) {
+    return { field: path, operator: "$eq", value: true };
   }
 };
 
-export default function(path) {
-  return !(key instanceof Skip)
-    ? { [key]: [visitors[left.type](left), visitors[right.type](right)] }
-    : key;
+export default function(path, filterParam) {
+  const result = visitors[path.type](path, filterParam);
+  console.log(result);
+  return result;
 }
