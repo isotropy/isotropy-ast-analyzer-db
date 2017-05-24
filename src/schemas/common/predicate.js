@@ -22,6 +22,16 @@ function getOperator(op, reverse) {
 }
 
 const visitors = {
+  /*
+    todo => [1, 2, 3, 4, 5].includes(todo.priority)
+  */
+  CallExpression(path, filterParam) {
+
+  },
+
+  /*
+    todo => todo.x == 1 && todo.y === 2
+  */
   LogicalExpression(path, filterParam) {
     console.log("::::", path.get("right").type);
     const node = path.node;
@@ -42,6 +52,9 @@ const visitors = {
       : key;
   },
 
+  /*
+    todo => todo.x === 10
+  */
   BinaryExpression(path, filterParam) {
     const node = path.node;
     const left = path.get("left");
@@ -68,8 +81,18 @@ const visitors = {
     return fieldOpAndVal;
   },
 
+  /*
+    todo => todo.incomplete
+  */
   MemberExpression(path, filterParam) {
     return { field: path, operator: "$eq", value: true };
+  },
+
+  /*
+    todo => !todo.incomplete
+  */
+  UnaryExpression(path, filterParam) {
+
   }
 };
 
