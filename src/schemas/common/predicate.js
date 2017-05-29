@@ -96,8 +96,15 @@ const visitors = {
   }
 };
 
-export default function(path, filterParam) {
-  const result = visitors[path.type](path, filterParam);
-  console.log(result);
-  return result;
+export default function(state, config) {
+  return composite(
+    {
+      type: "ArrowFunctionExpression",
+      generator: false,
+      expression: true,
+      async: false,
+      params: capture({ selector: "path" }),
+      body: capture({ selector: "path" })
+    }
+  )
 }

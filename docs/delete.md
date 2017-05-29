@@ -1,7 +1,7 @@
 Delete a record
 ```javascript
 async function deleteTodo(title, assignee) {
-  db.todos = db.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
+  myDb.todos = myDb.todos.filter(todo => !(todo.assignee === assignee && todo.title === title))
 }
 ```
 
@@ -15,7 +15,7 @@ async function deleteTodo(title, assignee) {
       "type": "MemberExpression",
       "object": {
         "type": "Identifier",
-        "name": "db"
+        "name": "myDb"
       },
       "property": {
         "type": "Identifier",
@@ -30,7 +30,7 @@ async function deleteTodo(title, assignee) {
           "type": "MemberExpression",
           "object": {
             "type": "Identifier",
-            "name": "db"
+            "name": "myDb"
           },
           "property": {
             "type": "Identifier",

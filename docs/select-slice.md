@@ -2,7 +2,7 @@ Limit the number of results
 ```javascript
 //Returns rows 10-20
 async function getTodos(who) {
-  return db.todos
+  return myDb.todos
     .filter(todo => todo.assignee === who)
     .slice(10, 20);
 }
@@ -23,7 +23,7 @@ async function getTodos(who) {
             "type": "MemberExpression",
             "object": {
               "type": "Identifier",
-              "name": "db"
+              "name": "myDb"
             },
             "property": {
               "type": "Identifier",

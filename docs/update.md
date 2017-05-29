@@ -1,7 +1,7 @@
 Update a record
 ```javascript
 async function updateTodo(assignee, newAssignee) {
-  db.todos = db.todos.map(todo => todo.assignee === assignee ? { ...todo, assignee: newAssignee } : todo)
+  myDb.todos = myDb.todos.map(todo => todo.assignee === assignee ? { ...todo, assignee: newAssignee } : todo)
 }
 ```
 
@@ -15,7 +15,7 @@ async function updateTodo(assignee, newAssignee) {
       "type": "MemberExpression",
       "object": {
         "type": "Identifier",
-        "name": "db"
+        "name": "myDb"
       },
       "property": {
         "type": "Identifier",
@@ -30,7 +30,7 @@ async function updateTodo(assignee, newAssignee) {
           "type": "MemberExpression",
           "object": {
             "type": "Identifier",
-            "name": "db"
+            "name": "myDb"
           },
           "property": {
             "type": "Identifier",

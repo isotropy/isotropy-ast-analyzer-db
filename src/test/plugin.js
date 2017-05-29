@@ -1,10 +1,7 @@
 import * as analyzers from "../";
 
 export default function(opts) {
-  let config = {
-    clientPackageName: "isotropy-mongodb-client",
-    serverPackageName: "isotropy-mongodb-server"
-  };
+  let config = {};
 
   let state = {
     importsAdded: []
@@ -38,30 +35,15 @@ export default function(opts) {
         },
 
         AssignmentExpression(path) {
-          analyze(
-            analyzers.write.analyzeAssignmentExpression,
-            path,
-            state,
-            this.config
-          );
+          analyze(analyzers.write.analyzeAssignmentExpression, path, state, this.config);
         },
 
         MemberExpression(path) {
-          analyze(
-            analyzers.read.analyzeMemberExpression,
-            path,
-            state,
-            this.config
-          );
+          analyze(analyzers.read.analyzeMemberExpression, path, state, this.config);
         },
 
         CallExpression(path) {
-          analyze(
-            analyzers.read.analyzeCallExpression,
-            path,
-            state,
-            this.config
-          );
+          analyze(analyzers.read.analyzeCallExpression, path, state, this.config);
         }
       }
     },

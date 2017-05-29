@@ -20,7 +20,7 @@ const operators = any([">", "<", ">=", "<=", "==="].map(i => literal(i)));
 
 /*
 async function getTodos(who) {
-  return db.todos
+  return myDb.todos
     .sort(
       (x, y) => x.assignee > y.assignee ? 1 : x.assignee === y.assignee ? 0 : -1
     );
@@ -210,26 +210,26 @@ const compareFn1 = $.obj(
 /*
 async function getTodos(who) {
   // Ascending
-  return db.todos
+  return myDb.todos
     .sort(
       (x, y) => x.assignee - y.assignee
     );
 
   // Descending
-  return db.todos
+  return myDb.todos
     .sort(
       (x, y) => y.assignee - x.assignee
       );
 
   //well, we also support
   // Ascending
-  return db.todos
+  return myDb.todos
     .sort(
       (x, y) => -(x.assignee - y.assignee)
     );
 
   // Descending
-  return db.todos
+  return myDb.todos
     .sort(
       (x, y) => -(y.assignee - x.assignee)
       );

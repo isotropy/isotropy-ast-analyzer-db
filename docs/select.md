@@ -1,7 +1,7 @@
 Query a table
 ```javascript
 async function getTodos(who) {
-  return db.todos.filter(todo => todo.assignee === who);
+  return myDb.todos.filter(todo => todo.assignee === who);
 }
 ```
 
@@ -16,7 +16,7 @@ async function getTodos(who) {
         "type": "MemberExpression",
         "object": {
           "type": "Identifier",
-          "name": "db"
+          "name": "myDb"
         },
         "property": {
           "type": "Identifier",

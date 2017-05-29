@@ -1,7 +1,7 @@
 Get all records
 ```javascript
 async function getAllTodos(who) {
-  return db.todos;
+  return myDb.todos;
 }
 ```
 
@@ -12,7 +12,7 @@ async function getAllTodos(who) {
     "type": "MemberExpression",
     "object": {
       "type": "Identifier",
-      "name": "db"
+      "name": "myDb"
     },
     "property": {
       "type": "Identifier",
@@ -24,7 +24,7 @@ async function getAllTodos(who) {
 
 ```javascript
 async function getAllTodos(who) {
-  const x = db.todos;
+  const x = myDb.todos;
 }
 ```
 
@@ -42,7 +42,7 @@ async function getAllTodos(who) {
         "type": "MemberExpression",
         "object": {
           "type": "Identifier",
-          "name": "db"
+          "name": "myDb"
         },
         "property": {
           "type": "Identifier",

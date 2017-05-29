@@ -1,7 +1,7 @@
 Order by a specific field
 ```javascript
 async function getTodos(who) {
-  return db.todos
+  return myDb.todos
     .sort(
       (x, y) => x.assignee > y.assignee ? 1 : x.assignee === y.assignee ? 0 : 1
     );

@@ -1,3 +1,5 @@
+import myDb from "my-db";
+
 async function addTodo(title, assignee) {
-  db.todos = db.todos.concat({ title, assignee });
+  myDb.todos = myDb.todos.concat({ title, assignee });
 }

@@ -1,3 +1,5 @@
+import myDb from "my-db";
+
 async function countTodos(who) {
-  return db.todos.length;
+  return myDb.todos.length;
 }

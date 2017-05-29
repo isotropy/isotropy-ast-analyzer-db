@@ -1,3 +1,5 @@
+import myDb from "my-db";
+
 async function getAllTodos(who) {
-  return db.todos;
+  return myDb.todos;
 }

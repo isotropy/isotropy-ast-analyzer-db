@@ -1,3 +1,7 @@
+import myDb from "my-db";
+
 async function getTodos(isAssigned) {
-  return db.todos.filter(todo => todo.priority === "normal" && todo.assignee === who || todo.priority === "high");
+  return myDb.todos.filter(
+    todo => (todo.priority === "normal" && todo.assignee === who) || todo.priority === "high"
+  );
 }

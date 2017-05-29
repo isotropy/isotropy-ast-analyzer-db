@@ -1,7 +1,7 @@
 Count the number of items
 ```javascript
 async function countTodos(who) {
-  return db.todos.filter(todo => todo.assignee === who).length;
+  return myDb.todos.filter(todo => todo.assignee === who).length;
 }
 ```
 
@@ -18,7 +18,7 @@ async function countTodos(who) {
           "type": "MemberExpression",
           "object": {
             "type": "Identifier",
-            "name": "db"
+            "name": "myDb"
           },
           "property": {
             "type": "Identifier",

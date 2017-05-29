@@ -1,3 +1,5 @@
+import myDb from "my-db";
+
 async function countTodos(who) {
-  return db.todos.filter(todo => todo.assignee === who).length;
+  return myDb.todos.filter(todo => todo.assignee === who).length;
 }

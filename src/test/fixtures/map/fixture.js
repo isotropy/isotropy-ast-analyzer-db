@@ -1,3 +1,5 @@
+import myDb from "my-db";
+
 async function getTodos(who) {
-  return db.todos.map(todo => ({ owner: todo.assignee, timestamp: todo.createdAt }));
+  return myDb.todos.map(todo => ({ owner: todo.assignee, timestamp: todo.createdAt }));
 }

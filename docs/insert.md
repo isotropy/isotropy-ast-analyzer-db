@@ -2,7 +2,7 @@ Perform a database insert
 ```javascript
 //Insert a single item
 async function addTodo(title, assignee) {
-  db.todos = db.todos.concat({ title, assignee });
+  myDb.todos = myDb.todos.concat({ title, assignee });
 }
 ```
 
@@ -16,7 +16,7 @@ async function addTodo(title, assignee) {
       "type": "MemberExpression",
       "object": {
         "type": "Identifier",
-        "name": "db"
+        "name": "myDb"
       },
       "property": {
         "type": "Identifier",
@@ -31,7 +31,7 @@ async function addTodo(title, assignee) {
           "type": "MemberExpression",
           "object": {
             "type": "Identifier",
-            "name": "db"
+            "name": "myDb"
           },
           "property": {
             "type": "Identifier",

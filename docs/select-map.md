@@ -1,7 +1,7 @@
 Query and return specific fields
 ```javascript
 async function getTodos(who) {
-  return db.todos
+  return myDb.todos
     .filter(todo => todo.assignee === who)
     .map(todo => ({ assignee: todo.assignee }));
 }
@@ -22,7 +22,7 @@ async function getTodos(who) {
             "type": "MemberExpression",
             "object": {
               "type": "Identifier",
-              "name": "db"
+              "name": "myDb"
             },
             "property": {
               "type": "Identifier",

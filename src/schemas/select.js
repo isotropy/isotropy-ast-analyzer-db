@@ -27,14 +27,7 @@ export default function(state, config) {
         }
       },
       arguments: [
-        {
-          type: "ArrowFunctionExpression",
-          generator: false,
-          expression: true,
-          async: false,
-          params: capture({ selector: "path" }),
-          body: capture({ selector: "path" })
-        }
+        predicate(state, config)
       ]
     },
     [

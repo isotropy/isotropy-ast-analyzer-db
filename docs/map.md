@@ -1,6 +1,6 @@
 ```javascript
 async function getTodos(who) {
-  return db.todos.map(todo => ({ owner: todo.assignee, timestamp: todo.createdAt }));
+  return myDb.todos.map(todo => ({ owner: todo.assignee, timestamp: todo.createdAt }));
 }
 ```
 
@@ -15,7 +15,7 @@ async function getTodos(who) {
         "type": "MemberExpression",
         "object": {
           "type": "Identifier",
-          "name": "db"
+          "name": "myDb"
         },
         "property": {
           "type": "Identifier",

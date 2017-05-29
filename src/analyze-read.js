@@ -17,11 +17,11 @@ function makeAnalyzer(schemas, path, state, config) {
 /*
   Ending with a method call
   eg:
-    db.todos.filter()
-    db.todos.filter().filter()
-    db.todos.map().filter()
-    db.todos.map().slice()
-    db.todos.sort()
+    myDb.todos.filter()
+    myDb.todos.filter().filter()
+    myDb.todos.map().filter()
+    myDb.todos.map().slice()
+    myDb.todos.sort()
 */
 export function analyzeCallExpression(path, state, config) {
   return makeAnalyzer([schemas.map, schemas.slice, schemas.sort, schemas.select], path, state, config);
@@ -30,8 +30,8 @@ export function analyzeCallExpression(path, state, config) {
 /*
   Ending with a member expression
   eg:
-    db.todos
-    db.todos.filter().length
+    myDb.todos
+    myDb.todos.filter().length
 */
 export function analyzeMemberExpression(path, state, config) {
   return makeAnalyzer([schemas.count, schemas.collection], path, state, config);
