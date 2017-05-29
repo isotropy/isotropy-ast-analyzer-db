@@ -1,54 +1,41 @@
-import * as analyzers from "../";
+import analyzers from "../";
 
 export default function(opts) {
-  let config = {};
+  let _analysis, _analysisState;
 
-  let state = {
-    importsAdded: []
-  };
-
-  let _analysis, _state;
-
-  function analyze(fn, path, state, config) {
-    const analysis = fn(path, state, config);
+  function analyze(fn, path, state) {
+    const analysis = fn(path, state);
     path.skip();
     if (analysis !== undefined) {
       _analysis = analysis.value;
-      _state = state;
     }
   }
 
+  const { meta, read, write } = analyzers();
+
   return {
     plugin: {
-      pre(state) {
-        this.config = this.opts ? { ...config, ...this.opts } : config;
-      },
       visitor: {
-        ImportDeclaration(path) {
-          analyzeAssignmentExpression(
-            analyzers.meta.analyzeImportDeclaration,
-            path,
-            state,
-            this.config
-          );
+        ImportDeclaration(path, state) {
+          analyze(meta.analyzeImportDeclaration, path, state);
           path.skip;
         },
 
-        AssignmentExpression(path) {
-          analyze(analyzers.write.analyzeAssignmentExpression, path, state, this.config);
+        AssignmentExpression(path, state) {
+          analyze(write.analyzeAssignmentExpression, path, state);
         },
 
-        MemberExpression(path) {
-          analyze(analyzers.read.analyzeMemberExpression, path, state, this.config);
+        MemberExpression(path, state) {
+          analyze(read.analyzeMemberExpression, path, state);
         },
 
-        CallExpression(path) {
-          analyze(analyzers.read.analyzeCallExpression, path, state, this.config);
+        CallExpression(path, state) {
+          analyze(read.analyzeCallExpression, path, state);
         }
       }
     },
     getResult: () => {
-      return { analysis: _analysis, state: _state };
+      return { analysis: _analysis };
     }
   };
 }

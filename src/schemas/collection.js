@@ -2,13 +2,13 @@ import { capture, composite, Match } from "chimpanzee";
 import { createCollection } from "../db-statements";
 import { root } from "./";
 
-export default function(state, config) {
+export default function(state, analysisState) {
   return composite(
     {
       type: "MemberExpression",
       object: {
         type: "Identifier",
-        name: root(state, config)({ key: "root", selector: "path" })
+        name: root(state, analysisState)({ key: "root", selector: "path" })
       },
       property: {
         type: "Identifier",

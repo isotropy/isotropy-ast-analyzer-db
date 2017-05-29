@@ -125,3 +125,10 @@ async function getTodos(who) {
   return authDb.users.filter(u => u.name === "jack");
 }
 ```
+
+Plugin Configuration (Advanced)
+```json
+"isotropy-mongo-db": {
+  "dbModulePaths": ["./db.js"],
+}
+```

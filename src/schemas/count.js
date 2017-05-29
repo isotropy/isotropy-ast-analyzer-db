@@ -2,11 +2,11 @@ import { collection } from "./";
 import { capture, composite, any, Match } from "chimpanzee";
 import { length } from "../db-statements";
 
-export default function(state, config) {
+export default function(state, analysisState) {
   return composite(
     {
       type: "MemberExpression",
-      object: any([collection].map(fn => fn(state, config)), { selector: "path" }),
+      object: any([collection].map(fn => fn(state, analysisState)), { selector: "path" }),
       property: {
         type: "Identifier",
         name: "length"

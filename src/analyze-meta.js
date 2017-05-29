@@ -1,15 +1,18 @@
-export function analyzeImportDeclaration(path, state, config) {
-  const sourceNode = path.get("source").node;
-  if (
-    sourceNode.type === "StringLiteral" &&
-    sourceNode.value === config.clientPackageName
-  ) {
-    const specifier = path.get("specifiers.0").node.local.name;
-    state.rootDeclarations = path.scope.bindings[
-      specifier
-    ].referencePaths.map(r =>
-      r.findParent(path => path.isVariableDeclarator())
-    );
-  }
-  return true;
+import path from "path";
+
+export default function(analysisState) {
+  return {
+    analyzeImportDeclaration(babelPath, state) {
+      const dbPaths = state.opts.databaseModules.map(p => path.resolve(p));
+      const moduleName = babelPath.get("source").node.value;
+      const resolvedName = path.resolve(path.dirname(state.file.opts.filename), moduleName);
+
+      if (dbPaths.includes(resolvedName)) {
+        const specifier = babelPath.get("specifiers.0").node.local.name;
+        analysisState.importBindings = analysisState.importBindings.concat(
+          babelPath.scope.bindings[specifier]
+        );
+      }
+    }
+  };
 }

@@ -1,5 +1,13 @@
-import * as _meta from "./analyze-meta";
-import * as _read from "./analyze-read";
+import meta from "./analyze-meta";
+import read from "./analyze-read";
 
-export const meta = _meta;
-export const read = _read;
+const analysisState = {
+  importBindings: []
+}
+
+export default function() {
+  return {
+    meta: meta(analysisState),
+    read: read(analysisState)
+  }
+}

@@ -1,4 +1,4 @@
-import myDb from "my-db";
+import myDb from "../my-db";
 
 async function countTodos(who) {
   return myDb.todos.filter(todo => todo.assignee === who).length;

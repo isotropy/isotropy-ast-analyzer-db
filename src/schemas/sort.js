@@ -313,13 +313,13 @@ const compareFn2 = $.obj(
   }
 );
 
-export default function(state, config) {
+export default function(state, analysisState) {
   return composite(
     {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: source([collection])(state, config),
+        object: source([collection])(state, analysisState),
         property: {
           type: "Identifier",
           name: "sort"

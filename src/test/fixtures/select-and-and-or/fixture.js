@@ -1,4 +1,4 @@
-import myDb from "my-db";
+import myDb from "../my-db";
 
 async function getTodos(isAssigned) {
   return myDb.todos.filter(

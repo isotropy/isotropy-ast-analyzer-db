@@ -33,7 +33,6 @@ const visitors = {
     todo => todo.x == 1 && todo.y === 2
   */
   LogicalExpression(path, filterParam) {
-    console.log("::::", path.get("right").type);
     const node = path.node;
     const left = path.get("left");
     const right = path.get("right");
@@ -96,7 +95,7 @@ const visitors = {
   }
 };
 
-export default function(state, config) {
+export default function(state, analysisState) {
   return composite(
     {
       type: "ArrowFunctionExpression",

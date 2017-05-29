@@ -12,13 +12,13 @@ import {
 } from "chimpanzee";
 import { slice } from "../db-statements";
 
-export default function(state, config) {
+export default function(state, analysisState) {
   return composite(
     {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: source([collection, map, sort])(state, config),
+        object: source([collection, map, sort])(state, analysisState),
         property: {
           type: "Identifier",
           name: "slice"

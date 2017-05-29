@@ -14,13 +14,13 @@ import { map } from "../db-statements";
 import { source } from "../utils";
 import { collection, slice } from "./";
 
-export default function(state, config) {
+export default function(state, analysisState) {
   return composite(
     {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: source([collection, slice])(state, config)
+        object: source([collection, slice])(state, analysisState)
       },
       arguments: array(
         [

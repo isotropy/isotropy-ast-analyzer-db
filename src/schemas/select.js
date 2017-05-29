@@ -14,20 +14,20 @@ import { collection, map, sort } from "./";
 import { filter } from "../db-statements";
 import predicate from "./common/predicate";
 
-export default function(state, config) {
+export default function(state, analysisState) {
   return composite(
     {
       type: "CallExpression",
       callee: {
         type: "MemberExpression",
-        object: source([collection])(state, config),
+        object: source([collection])(state, analysisState),
         property: {
           type: "Identifier",
           name: "filter"
         }
       },
       arguments: [
-        predicate(state, config)
+        predicate(state, analysisState)
       ]
     },
     [
