@@ -10,6 +10,6 @@ module.exports = {
     method: "slice",
     from: 10,
     to: 20,
-    source: { type: "query", db: "db", identifier: "db", collection: "todos" }
+    source: { type: "query", module: "todosDbModule", identifier: "myDb", collection: "todos" }
   }
 };

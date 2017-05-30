@@ -3,15 +3,21 @@ import path from "path";
 export default function(analysisState) {
   return {
     analyzeImportDeclaration(babelPath, state) {
-      const dbPaths = state.opts.databaseModules.map(p => path.resolve(p));
+      const dbModules = Object.keys(state.opts.databaseModules).map(key => ({
+        key,
+        value: path.resolve(state.opts.databaseModules[key])
+      }));
+
       const moduleName = babelPath.get("source").node.value;
       const resolvedName = path.resolve(path.dirname(state.file.opts.filename), moduleName);
 
-      if (dbPaths.includes(resolvedName)) {
+      const dbModule = dbModules.find(p => p.value === resolvedName);
+      if (dbModule) {
         const specifier = babelPath.get("specifiers.0").node.local.name;
-        analysisState.importBindings = analysisState.importBindings.concat(
-          babelPath.scope.bindings[specifier]
-        );
+        analysisState.importBindings = analysisState.importBindings.concat({
+          module: dbModule.key,
+          binding: babelPath.scope.bindings[specifier]
+        });
       }
     }
   };

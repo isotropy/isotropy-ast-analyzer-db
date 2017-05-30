@@ -1,6 +1,6 @@
 export function createCollection(args) {
-  const { db, identifier, collection } = args;
-  return { type: "query", db, identifier, collection };
+  const { module, identifier, collection } = args;
+  return { type: "query", module, identifier, collection };
 }
 
 export function createQuery(name, props, source) {

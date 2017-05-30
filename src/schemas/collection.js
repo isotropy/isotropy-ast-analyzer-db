@@ -1,4 +1,4 @@
-import { capture, composite, Match } from "chimpanzee";
+import { capture, composite, wrap, Match } from "chimpanzee";
 import { createCollection } from "../db-statements";
 import { root } from "./";
 
@@ -6,10 +6,7 @@ export default function(state, analysisState) {
   return composite(
     {
       type: "MemberExpression",
-      object: {
-        type: "Identifier",
-        name: root(state, analysisState)({ key: "root", selector: "path" })
-      },
+      object: wrap(root(state, analysisState), { key: "root", selector: "path" }),
       property: {
         type: "Identifier",
         name: capture("collection")
@@ -34,7 +31,7 @@ export default function(state, analysisState) {
         return result instanceof Match
           ? createCollection({
               identifier: result.value.root.identifier,
-              db: result.value.root.db,
+              module: result.value.root.module,
               collection: result.value.collection
             })
           : result;

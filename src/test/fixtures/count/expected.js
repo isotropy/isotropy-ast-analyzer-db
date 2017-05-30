@@ -3,8 +3,8 @@ module.exports = {
   property: "length",
   source: {
     type: "query",
-    db: "db",
-    identifier: "db",
+    module: "todosDbModule",
+    identifier: "myDb",
     collection: "todos"
   }
-}
+};

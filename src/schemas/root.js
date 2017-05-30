@@ -1,40 +1,20 @@
-import { builtins as $, Match, Skip } from "chimpanzee";
+import { capture, composite, any, Match, Skip, builtins as $ } from "chimpanzee";
 
 export default function(state, analysisState) {
-  return params => {
-    function fn(path, key, parents, parentKeys) {
-      return context => {
-        const node = path.node;
-        const objPath = path.parentPath;
 
-        console.log("STATE", state.rootDeclarations);
-
-        return state.rootDeclarations
-          ? state.rootDeclarations.some(
-              ref =>
-                decl.scope.bindings[node] &&
-                decl.scope.bindings[node].referencePaths.some(
-                  p => p.node === objPath.node.object
-                )
-            )
-              ? (() => {
-                  const rootDeclaration = state.rootDeclarations.find(
-                    ref =>
-                      decl.scope.bindings[node] &&
-                      decl.scope.bindings[node].referencePaths.some(
-                        p => p.node === objPath.node.object
-                      )
-                  );
-                  const db = rootDeclaration.node.init.arguments[0].value;
-                  return new Match({ db, identifier: node }, { obj: path, context, key });
-                })()
-              : new Skip("Invalid", { obj: path, context, key, parents, parentKeys })
-          : new Skip(
-              `Could not find database import declaration. You need something like: import db from "./db". See docs.`,
-              { obj: path, context, key, parents, parentKeys }
-            );
-      };
-    }
-    return $.func(fn, params);
+  const identifier = (path, key, parents, parentKeys) => context => {
+    const env = { path, key, parents, parentKeys };
+    return path.type === "Identifier"
+      ? (() => {
+          const importBinding = analysisState.importBindings.find(
+            b => b.binding.identifier.name === path.node.name
+          );
+          return importBinding && importBinding.binding.referencePaths.some(p => p.node === path.node)
+            ? new Match({ identifier: path.node.name, module: importBinding.module }, env)
+            : new Skip(`Did not match any known database modules.`, env);
+        })()
+      : new Skip(`Root node is not an Identifier`, env);
   };
+
+  return identifier;
 }

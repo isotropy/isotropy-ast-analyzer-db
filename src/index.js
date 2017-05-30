@@ -1,13 +1,16 @@
 import meta from "./analyze-meta";
 import read from "./analyze-read";
 
-const analysisState = {
-  importBindings: []
+function makeAnalysisState() {
+  return {
+    importBindings: []
+  };
 }
 
 export default function() {
+  const state = makeAnalysisState();
   return {
-    meta: meta(analysisState),
-    read: read(analysisState)
-  }
+    meta: meta(state),
+    read: read(state)
+  };
 }

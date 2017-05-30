@@ -117,11 +117,11 @@ async function countTodos(who) {
 
 Multiple databases
 ```javascript
-import todosDb from "./todos-db.js";
+import todosDbModule from "./todos-db.js";
 import authDb from "./auth-db.js";
 
 async function getTodos(who) {
-  return todosDb.todos.filter(todo => todo.assignee === who);
+  return todosDbModule.todos.filter(todo => todo.assignee === who);
   return authDb.users.filter(u => u.name === "jack");
 }
 ```
@@ -129,6 +129,6 @@ async function getTodos(who) {
 Plugin Configuration (Advanced)
 ```json
 "isotropy-mongo-db": {
-  "dbModulePaths": ["./db.js"],
+  "dbModulePaths": { "todosDbModule": "./db.js" },
 }
 ```

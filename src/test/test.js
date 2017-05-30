@@ -46,7 +46,15 @@ describe("isotropy-ast-analyzer-db", () => {
 
       const babelResult = babel.transformFileSync(fixturePath, {
         plugins: [
-          [pluginInfo.plugin, { databaseModules: ["./dist/test/fixtures/my-db"] }],
+          [
+            pluginInfo.plugin,
+            {
+              databaseModules: {
+                todosDbModule: "./dist/test/fixtures/my-db",
+                backupDbModule: "./dist/test/fixtures/backup-db"
+              }
+            }
+          ],
           "transform-object-rest-spread"
         ],
         parserOpts: {
@@ -62,30 +70,30 @@ describe("isotropy-ast-analyzer-db", () => {
   }
 
   const tests = [
-    ["collection", "collection", ],
-    // ["count", "count"],
-    // // ["delete", "delete"],
-    // // ["import-select", "import-select", { import: true }],
-    // // ["import-update", "import-update", { import: true }],
-    // // ["insert", "insert"],
-    // ["map", "map"],
-    // ["map-slice", "map-slice"],
-    // // ["select", "select"],
-    // // ["select-count", "select-count"],
-    // // ["select-map", "select-map"],
-    // // ["select-slice", "select-slice"],
-    // // ["select-sort", "select-sort"],
-    // ["slice", "slice"],
-    // ["slice-map", "slice-map"],
-    // // ["slice-single-param", "slice-single-param"],
-    // ["sort", "sort"],
-    // ["sort-desc", "sort-desc"],
-    // ["sort-alt", "sort-alt"],
-    // ["sort-alt-negative", "sort-alt-negative"],
-    // ["sort-alt-reverse", "sort-alt-reverse"],
-    // ["sort-alt-reverse-negative", "sort-alt-reverse-negative"],
-    // ["sort-alt-slice", "sort-alt-slice"],
-    // ["sort-slice", "sort-slice"],
+    ["collection", "collection"],
+    ["count", "count"],
+    // ["delete", "delete"],
+    // ["import-select", "import-select", { import: true }],
+    // ["import-update", "import-update", { import: true }],
+    // ["insert", "insert"],
+    ["map", "map"],
+    ["map-slice", "map-slice"],
+    // ["select", "select"],
+    // ["select-count", "select-count"],
+    // ["select-map", "select-map"],
+    // ["select-slice", "select-slice"],
+    // ["select-sort", "select-sort"],
+    ["slice", "slice"],
+    ["slice-map", "slice-map"],
+    // ["slice-single-param", "slice-single-param"],
+    ["sort", "sort"],
+    ["sort-desc", "sort-desc"],
+    ["sort-alt", "sort-alt"],
+    ["sort-alt-negative", "sort-alt-negative"],
+    ["sort-alt-reverse", "sort-alt-reverse"],
+    ["sort-alt-reverse-negative", "sort-alt-reverse-negative"],
+    ["sort-alt-slice", "sort-alt-slice"],
+    ["sort-slice", "sort-slice"],
     // ["update", "update"]
   ];
 

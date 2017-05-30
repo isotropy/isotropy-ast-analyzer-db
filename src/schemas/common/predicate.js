@@ -1,4 +1,4 @@
-import { Match, Skip } from "chimpanzee";
+import { composite, capture, Match, Skip } from "chimpanzee";
 
 function memberOnFilterParam(path, filterParam) {
   return (

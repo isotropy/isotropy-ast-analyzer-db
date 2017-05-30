@@ -1,4 +1,4 @@
-import analyzers from "../";
+import getAnalyzers from "../";
 
 export default function(opts) {
   let _analysis, _analysisState;
@@ -11,26 +11,29 @@ export default function(opts) {
     }
   }
 
-  const { meta, read, write } = analyzers();
+  let analyzers;
 
   return {
     plugin: {
+      pre() {
+        analyzers = getAnalyzers();
+      },
       visitor: {
         ImportDeclaration(path, state) {
-          analyze(meta.analyzeImportDeclaration, path, state);
+          analyze(analyzers.meta.analyzeImportDeclaration, path, state);
           path.skip;
         },
 
-        AssignmentExpression(path, state) {
-          analyze(write.analyzeAssignmentExpression, path, state);
-        },
+        // AssignmentExpression(path, state) {
+        //   analyze(write.analyzeAssignmentExpression, path, state);
+        // },
 
         MemberExpression(path, state) {
-          analyze(read.analyzeMemberExpression, path, state);
+          analyze(analyzers.read.analyzeMemberExpression, path, state);
         },
 
         CallExpression(path, state) {
-          analyze(read.analyzeCallExpression, path, state);
+          analyze(analyzers.read.analyzeCallExpression, path, state);
         }
       }
     },
