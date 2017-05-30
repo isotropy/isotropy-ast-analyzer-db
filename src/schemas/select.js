@@ -5,7 +5,8 @@ import {
   array,
   map as mapResult,
   optionalItem,
-  Match
+  Match,
+  builtins as $
 } from "chimpanzee";
 
 import { source } from "../utils";
@@ -26,9 +27,9 @@ export default function(state, analysisState) {
           name: "filter"
         }
       },
-      arguments: [
+      arguments: $.arr([
         predicate(state, analysisState)
-      ]
+      ], { selector: "path" })
     },
     {
       build: obj => context => result =>
