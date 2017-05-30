@@ -1,6 +1,5 @@
 import {
   capture,
-  composite,
   any,
   array,
   optionalItem,
@@ -13,6 +12,7 @@ import {
 import { map } from "../db-statements";
 import { source } from "../utils";
 import { collection, slice } from "./";
+import composite from "../utils/composite";
 
 export default function(state, analysisState) {
   return composite(
@@ -63,15 +63,6 @@ export default function(state, analysisState) {
         { key: "fields" }
       )
     },
-    [
-      { name: "default", modifiers: { object: path => path.node } },
-      {
-        name: "path",
-        modifiers: {
-          property: (path, key) => path.get(key)
-        }
-      }
-    ],
     {
       build: obj => context => result =>
         result instanceof Match

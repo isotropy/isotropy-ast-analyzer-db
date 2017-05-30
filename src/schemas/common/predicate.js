@@ -104,6 +104,7 @@ export default function(state, analysisState) {
       async: false,
       params: capture({ selector: "path" }),
       body: capture({ selector: "path" })
-    }
+    },
+    
   )
 }

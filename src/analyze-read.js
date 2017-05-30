@@ -26,7 +26,7 @@ export default function(analysisState) {
         myDb.todos.sort()
     */
     analyzeCallExpression(path, state) {
-      return makeAnalyzer([schemas.map, schemas.slice, schemas.sort], path, state, analysisState);
+      return makeAnalyzer([schemas.map, schemas.slice, schemas.sort, schemas.select], path, state, analysisState);
     },
     /*
       Ending with a member expression

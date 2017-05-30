@@ -1,6 +1,7 @@
 import { collection } from "./";
-import { capture, composite, any, Match } from "chimpanzee";
+import { capture, any, Match } from "chimpanzee";
 import { length } from "../db-statements";
+import composite from "../utils/composite";
 
 export default function(state, analysisState) {
   return composite(
@@ -12,10 +13,6 @@ export default function(state, analysisState) {
         name: "length"
       }
     },
-    [
-      { name: "default", modifiers: { object: path => path.node } },
-      { name: "path", modifiers: { property: (path, key) => path.get(key) } }
-    ],
     {
       build: obj => context => result =>
         result instanceof Match ? length(result.value.object) : result

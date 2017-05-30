@@ -3,7 +3,6 @@ import { collection, map, sort } from "./";
 import {
   parse,
   capture,
-  composite,
   any,
   array,
   map as mapResult,
@@ -11,6 +10,7 @@ import {
   Match
 } from "chimpanzee";
 import { slice } from "../db-statements";
+import composite from "../utils/composite";
 
 export default function(state, analysisState) {
   return composite(
@@ -46,10 +46,6 @@ export default function(state, analysisState) {
         { key: "args" }
       )
     },
-    [
-      { name: "default", modifiers: { object: path => path.node } },
-      { name: "path", modifiers: { property: (path, key) => path.get(key) } }
-    ],
     {
       build: obj => context => result =>
         result instanceof Match

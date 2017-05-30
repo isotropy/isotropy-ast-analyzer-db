@@ -2,7 +2,6 @@ import R from "ramda";
 import {
   builtins as $,
   capture,
-  composite,
   any,
   array,
   optionalItem,
@@ -11,6 +10,7 @@ import {
   Skip
 } from "chimpanzee";
 
+import composite from "../utils/composite";
 import { source } from "../utils";
 import { collection, select, slice } from "./";
 import integer from "./common/integer";
@@ -327,15 +327,6 @@ export default function(state, analysisState) {
       },
       arguments: array([any([compareFn1, compareFn2])])
     },
-    [
-      { modifiers: { object: path => path.node } },
-      {
-        name: "path",
-        modifiers: {
-          property: (path, key) => path.get(key)
-        }
-      }
-    ],
     {
       build: obj => context => result =>
         result instanceof Match

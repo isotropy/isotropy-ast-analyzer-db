@@ -1,6 +1,7 @@
-import { capture, composite, wrap, Match } from "chimpanzee";
+import { capture, wrap, Match } from "chimpanzee";
 import { createCollection } from "../db-statements";
 import { root } from "./";
+import composite from "../utils/composite";
 
 export default function(state, analysisState) {
   return composite(
@@ -12,20 +13,6 @@ export default function(state, analysisState) {
         name: capture("collection")
       }
     },
-    [
-      {
-        name: "default",
-        modifiers: {
-          object: path => path.node
-        }
-      },
-      {
-        name: "path",
-        modifiers: {
-          property: (path, key) => path.get(key)
-        }
-      }
-    ],
     {
       build: obj => context => result => {
         return result instanceof Match

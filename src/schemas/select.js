@@ -1,7 +1,6 @@
 import {
   parse,
   capture,
-  composite,
   any,
   array,
   map as mapResult,
@@ -13,6 +12,7 @@ import { source } from "../utils";
 import { collection, map, sort } from "./";
 import { filter } from "../db-statements";
 import predicate from "./common/predicate";
+import composite from "../utils/composite";
 
 export default function(state, analysisState) {
   return composite(
@@ -30,10 +30,6 @@ export default function(state, analysisState) {
         predicate(state, analysisState)
       ]
     },
-    [
-      { name: "default", modifiers: { object: path => path.node } },
-      { name: "path", modifiers: { property: (path, key) => path.get(key) } }
-    ],
     {
       build: obj => context => result =>
         result instanceof Match

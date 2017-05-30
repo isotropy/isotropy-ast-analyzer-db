@@ -51,10 +51,6 @@ export default function(state, analysisState) {
         { key: "args" }
       )
     },
-    [
-      { name: "default", modifiers: { object: path => path.node } },
-      { name: "path", modifiers: { property: (path, key) => path.get(key) } }
-    ],
     {
       build: obj => context => result =>
         result instanceof Match
