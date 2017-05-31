@@ -1,4 +1,4 @@
-import { source } from "../utils";
+import { source } from "../chimpanzee-utils";
 import { collection, map, sort } from "./";
 import {
   parse,
@@ -10,7 +10,7 @@ import {
   Match
 } from "chimpanzee";
 import { slice } from "../db-statements";
-import composite from "../utils/composite";
+import composite from "../chimpanzee-utils/composite";
 
 export default function(state, analysisState) {
   return composite(

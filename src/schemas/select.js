@@ -9,11 +9,11 @@ import {
   builtins as $
 } from "chimpanzee";
 
-import { source } from "../utils";
+import { source } from "../chimpanzee-utils";
 import { collection, map, sort } from "./";
 import { filter } from "../db-statements";
 import predicate from "./common/predicate";
-import composite from "../utils/composite";
+import composite from "../chimpanzee-utils/composite";
 
 export default function(state, analysisState) {
   return composite(
@@ -32,7 +32,7 @@ export default function(state, analysisState) {
       ], { selector: "path" })
     },
     {
-      build: obj => context => result =>
+      build: () => () => result =>
         result instanceof Match
           ? filter(result.value.object, {
               filter: predicate(

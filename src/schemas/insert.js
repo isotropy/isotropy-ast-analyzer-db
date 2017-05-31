@@ -1,4 +1,4 @@
-import { source } from "../utils";
+import { source } from "../chimpanzee-utils";
 import { collection, map, sort } from "./";
 import {
   parse,

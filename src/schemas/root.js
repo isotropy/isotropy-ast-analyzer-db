@@ -9,7 +9,7 @@ export default function(state, analysisState) {
           const importBinding = analysisState.importBindings.find(
             b => b.binding.identifier.name === path.node.name
           );
-          return importBinding && importBinding.binding.referencePaths.some(p => p.node === path.node)
+          return importBinding && importBinding.binding.referencePaths.includes(path)
             ? new Match({ identifier: path.node.name, module: importBinding.module }, env)
             : new Skip(`Did not match any known database modules.`, env);
         })()

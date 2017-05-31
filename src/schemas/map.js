@@ -10,9 +10,9 @@ import {
 } from "chimpanzee";
 
 import { map } from "../db-statements";
-import { source } from "../utils";
+import { source } from "../chimpanzee-utils";
 import { collection, slice } from "./";
-import composite from "../utils/composite";
+import composite from "../chimpanzee-utils/composite";
 
 export default function(state, analysisState) {
   return composite(

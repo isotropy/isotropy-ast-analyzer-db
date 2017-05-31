@@ -1,7 +1,7 @@
 import { capture, Match, Skip, builtins as $ } from "chimpanzee";
-import composite from "../../utils/composite";
-import expressions from "../../utils/expressions";
-import arrowFunctions from "../../utils/arrow-functions";
+import composite from "../../chimpanzee-utils/composite";
+import * as expressions from "../../chimpanzee-utils/expressions";
+import * as arrowFunctions from "../../chimpanzee-utils/arrow-functions";
 
 function memberOnFilterParam(path) {
   return (
@@ -31,33 +31,41 @@ const visitors = {
       todo => approvers.includes(todo.createdBy)
       todo => todo.approvers.includes(todo.createdBy)
   */
-  CallExpression(path, negate) {},
+  CallExpression(env, negate) {
+    const { path, key, parents, parentKeys } = env;
+  },
 
   /*
     todo => todo.x == 1 && todo.y === 2
   */
-  LogicalExpression(path, negate) {
+  LogicalExpression(env, negate) {
+    if (!env.path) console.log(env);
+    const { path, key, parents, parentKeys } = env;
     const node = path.node;
     const left = path.get("left");
     const right = path.get("right");
 
-    const key = node.operator === "&&"
+    const operator = node.operator === "&&"
       ? "$and"
       : node.operator === "||"
           ? "$or"
-          : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`);
+          : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`, env);
 
-    return !(key instanceof Skip)
+    return !(operator instanceof Skip)
       ? {
-          [key]: [visitors[left.type](left), visitors[right.type](right)]
+          [operator]: [
+            visitors[left.type]({ ...env, path: left }),
+            visitors[right.type]({ ...env, path: right })
+          ]
         }
-      : key;
+      : operator;
   },
 
   /*
     todo => todo.x === 10
   */
-  BinaryExpression(path, negate) {
+  BinaryExpression(env, negate) {
+    const { path, key, parents, parentKeys } = env;
     const node = path.node;
     const left = path.get("left");
     const right = path.get("right");
@@ -66,7 +74,6 @@ const visitors = {
     const parts = [[left, right, false], [right, left, true]];
     const fieldOpAndVal = (function loop(_parts) {
       const [first, second, flipOperator] = _parts[0];
-      const [firstObject, secondObject] = [first, second].map(expressions.getObject);
 
       //We're going to disallow operations which compare two fields on the same object/row
       //  NOT ALLOWED: todo => todo.likeCount > todo.dislikeCount
@@ -77,11 +84,12 @@ const visitors = {
                 operator: getOperator(path.get("operator"), flipOperator),
                 value: second
               }
-            : new Skip(`Comparing two fields in the same object is not supported.`)
+            : new Skip(`Comparing two fields in the same object is not supported.`, env)
         : _parts.length > 1
             ? loop(_parts.slice(1))
             : new Skip(
-                `Neither of the fields in the predicate expression referenced the database collection.`
+                `Neither of the fields in the predicate expression referenced the database collection.`,
+                env
               );
     })(parts);
 
@@ -91,19 +99,21 @@ const visitors = {
   /*
     todo => todo.incomplete
   */
-  MemberExpression(path, negate) {
+  MemberExpression(env, negate) {
+    const { path, key, parents, parentKeys } = env;
     return { field: path, operator: "$eq", value: negate ? false : true };
   },
 
   /*
     todo => !todo.incomplete
   */
-  UnaryExpression(path, negate) {
+  UnaryExpression(env, negate) {
+    const { path, key, parents, parentKeys } = env;
     return path.operator === "!"
       ? Object.keys(visitors).includes(path.type)
-          ? visitors[path.type](path.get("argument"), negate ? false : true)
-          : new Skip(`Unsupported type ${path.type} in UnaryExpression.`)
-      : new Skip(`Only '!' is supported as the operator in a UnaryExpression.`);
+          ? visitors[path.type]({ ...env, path: path.get("argument") }, negate ? false : true)
+          : new Skip(`Unsupported type ${path.type} in UnaryExpression.`, env)
+      : new Skip(`Only '!' is supported as the operator in a UnaryExpression.`, env);
   }
 };
 
@@ -112,11 +122,16 @@ export default function(state, analysisState) {
     {
       type: "ArrowFunctionExpression",
       params: $.arr([capture()], { selector: "path" }),
-      body: path => () => visitors[path.type](path)
+      body: $.func(
+        (path, key, parents, parentKeys) => context =>
+          visitors[path.type]({ path, key, parents, parentKeys }),
+        { selector: "path" }
+      )
     },
     {
-      build: path => context => result => {
-        console.log("nxt", result);
+      build: path => () => result => {
+        //console.log("P", path.node);
+        //console.log("nxt", result);
       }
     }
   );

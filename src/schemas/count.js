@@ -1,7 +1,7 @@
 import { collection } from "./";
 import { capture, any, Match } from "chimpanzee";
 import { length } from "../db-statements";
-import composite from "../utils/composite";
+import composite from "../chimpanzee-utils/composite";
 
 export default function(state, analysisState) {
   return composite(

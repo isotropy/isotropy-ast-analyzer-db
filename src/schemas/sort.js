@@ -10,8 +10,8 @@ import {
   Skip
 } from "chimpanzee";
 
-import composite from "../utils/composite";
-import { source } from "../utils";
+import composite from "../chimpanzee-utils/composite";
+import { source } from "../chimpanzee-utils";
 import { collection, select, slice } from "./";
 import integer from "./common/integer";
 import { sort } from "../db-statements";
