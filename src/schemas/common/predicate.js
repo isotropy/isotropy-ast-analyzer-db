@@ -1,5 +1,6 @@
-import { capture, Match, Skip } from "chimpanzee";
+import { capture, Match, Skip, builtins as $ } from "chimpanzee";
 import composite from "../../utils/composite";
+import expressions from "../../utils/expressions";
 import arrowFunctions from "../../utils/arrow-functions";
 
 function memberOnFilterParam(path) {
