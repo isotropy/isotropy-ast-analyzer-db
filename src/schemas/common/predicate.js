@@ -129,8 +129,8 @@ export default function(state, analysisState) {
       )
     },
     {
-      build: path => () => result => {
-        //console.log("P", path.node);
+      build: () => () => result => {
+        console.log("P", result.value.$and);
         //console.log("nxt", result);
       }
     }
