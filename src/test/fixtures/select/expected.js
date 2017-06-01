@@ -8,7 +8,7 @@ module.exports = {
       operator: "$and",
       left: {
         operator: "$eq",
-        left: "assignee",
+        field: "assignee",
         right: {
           type: "Identifier",
           name: "who"
@@ -17,8 +17,8 @@ module.exports = {
       right: {
         operator: "$and",
         left: {
-          operator: "eq",
-          left: "priority",
+          operator: "$eq",
+          field: "priority",
           right: {
             type: "NumericLiteral",
             value: 2
@@ -27,9 +27,12 @@ module.exports = {
       }
     },
     right: {
-      operator: "eq",
-      left: "new",
-      right: true
+      operator: "$eq",
+      field: "new",
+      right: {
+        type: "BooleanLiteral",
+        value: true
+      }
     },
     operator: "===",
     field: "assignee",
