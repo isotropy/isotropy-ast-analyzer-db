@@ -2,6 +2,7 @@ import { capture, Match, Skip, builtins as $ } from "chimpanzee";
 import composite from "../../chimpanzee-utils/composite";
 import * as expressions from "../../chimpanzee-utils/expressions";
 import * as arrowFunctions from "../../chimpanzee-utils/arrow-functions";
+import { isMatchOrValue } from "../../chimpanzee-utils/results";
 
 function memberOnFilterParam(path) {
   return (
@@ -58,13 +59,13 @@ const visitors = {
               env
             );
 
-    return !(operator instanceof Skip)
+    return isMatchOrValue(operator)
       ? (() => {
           const leftVal = visitors[left.type]({ ...env, path: left });
-          return !(operator instanceof Skip)
+          return isMatchOrValue(leftVal)
             ? (() => {
                 const rightVal = visitors[right.type]({ ...env, path: right });
-                return !(operator instanceof Skip)
+                return isMatchOrValue(rightVal)
                   ? {
                       operator,
                       left: leftVal,
@@ -93,8 +94,8 @@ const visitors = {
 
       //We're going to disallow operations which compare two fields on the same object/row
       //  NOT ALLOWED: todo => todo.likeCount > todo.dislikeCount
-      return arrowFunctions.isDefinedOnParameter(first)
-        ? !arrowFunctions.isDefinedOnParameter(second)
+      return arrowFunctions.isMemberExpressionDefinedOnParameter(first)
+        ? !arrowFunctions.isMemberExpressionDefinedOnParameter(second)
             ? {
                 operator: getOperator(path.get("operator"), flipOperator),
                 field: first.node,
@@ -161,7 +162,7 @@ export default function(state, analysisState) {
     },
     {
       build: () => () => result => {
-        console.log("P", result.value);
+        console.log("P", result);
         //console.log("nxt", result);
       }
     }
