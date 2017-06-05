@@ -20,8 +20,12 @@ function getOperator(op, flipOperator) {
     [["<"], ["$lt", "$gte"]],
     [["!=", "!=="], ["$ne"]]
   ];
-  const match = map.find(([jsOperators, dbOperators]) => jsOperators.includes(op.node));
-  return match ? (!flipOperator ? match[1][0] : match[1][1] || match[1][0]) : undefined;
+  const match = map.find(([jsOperators, dbOperators]) =>
+    jsOperators.includes(op.node)
+  );
+  return match
+    ? !flipOperator ? match[1][0] : match[1][1] || match[1][0]
+    : undefined;
 }
 
 const visitors = {
@@ -49,15 +53,27 @@ const visitors = {
       ? "$and"
       : node.operator === "||"
           ? "$or"
-          : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`, env);
+          : new Skip(
+              `Unsupported operator ${node.operator} in LogicalExpression.`,
+              env
+            );
 
     return !(operator instanceof Skip)
-      ? {
-          [operator]: [
-            visitors[left.type]({ ...env, path: left }),
-            visitors[right.type]({ ...env, path: right })
-          ]
-        }
+      ? (() => {
+          const leftVal = visitors[left.type]({ ...env, path: left });
+          return !(operator instanceof Skip)
+            ? (() => {
+                const rightVal = visitors[right.type]({ ...env, path: right });
+                return !(operator instanceof Skip)
+                  ? {
+                      operator,
+                      left: leftVal,
+                      right: rightVal
+                    }
+                  : rightVal;
+              })()
+            : leftVal;
+        })()
       : operator;
   },
 
@@ -80,11 +96,14 @@ const visitors = {
       return arrowFunctions.isDefinedOnParameter(first)
         ? !arrowFunctions.isDefinedOnParameter(second)
             ? {
-                field: first,
                 operator: getOperator(path.get("operator"), flipOperator),
-                value: second
+                field: first.node,
+                value: second.node
               }
-            : new Skip(`Comparing two fields in the same object is not supported.`, env)
+            : new Skip(
+                `Comparing two fields in the same object is not supported.`,
+                env
+              )
         : _parts.length > 1
             ? loop(_parts.slice(1))
             : new Skip(
@@ -101,7 +120,13 @@ const visitors = {
   */
   MemberExpression(env, negate) {
     const { path, key, parents, parentKeys } = env;
-    return { field: path, operator: "$eq", value: negate ? false : true };
+    return {
+      operator: "$eq",
+      field: path,
+      value: negate
+        ? { type: "BooleanLiteral", value: false }
+        : { type: "BooleanLiteral", value: true }
+    };
   },
 
   /*
@@ -111,9 +136,15 @@ const visitors = {
     const { path, key, parents, parentKeys } = env;
     return path.operator === "!"
       ? Object.keys(visitors).includes(path.type)
-          ? visitors[path.type]({ ...env, path: path.get("argument") }, negate ? false : true)
+          ? visitors[path.type](
+              { ...env, path: path.get("argument") },
+              negate ? false : true
+            )
           : new Skip(`Unsupported type ${path.type} in UnaryExpression.`, env)
-      : new Skip(`Only '!' is supported as the operator in a UnaryExpression.`, env);
+      : new Skip(
+          `Only '!' is supported as the operator in a UnaryExpression.`,
+          env
+        );
   }
 };
 
@@ -130,7 +161,7 @@ export default function(state, analysisState) {
     },
     {
       build: () => () => result => {
-        console.log("P", result.value.$and);
+        console.log("P", result.value);
         //console.log("nxt", result);
       }
     }
