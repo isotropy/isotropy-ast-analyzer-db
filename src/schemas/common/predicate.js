@@ -3,6 +3,7 @@ import composite from "../../chimpanzee-utils/composite";
 import * as expressions from "../../chimpanzee-utils/expressions";
 import * as arrowFunctions from "../../chimpanzee-utils/arrow-functions";
 import { isMatchOrValue } from "../../chimpanzee-utils/results";
+import util from "util";
 
 function memberOnFilterParam(path) {
   return (
@@ -21,12 +22,8 @@ function getOperator(op, flipOperator) {
     [["<"], ["$lt", "$gte"]],
     [["!=", "!=="], ["$ne"]]
   ];
-  const match = map.find(([jsOperators, dbOperators]) =>
-    jsOperators.includes(op.node)
-  );
-  return match
-    ? !flipOperator ? match[1][0] : match[1][1] || match[1][0]
-    : undefined;
+  const match = map.find(([jsOperators, dbOperators]) => jsOperators.includes(op.node));
+  return match ? (!flipOperator ? match[1][0] : match[1][1] || match[1][0]) : undefined;
 }
 
 const visitors = {
@@ -44,7 +41,6 @@ const visitors = {
     todo => todo.x == 1 && todo.y === 2
   */
   LogicalExpression(env, negate) {
-    if (!env.path) console.log(env);
     const { path, key, parents, parentKeys } = env;
     const node = path.node;
     const left = path.get("left");
@@ -54,10 +50,7 @@ const visitors = {
       ? "$and"
       : node.operator === "||"
           ? "$or"
-          : new Skip(
-              `Unsupported operator ${node.operator} in LogicalExpression.`,
-              env
-            );
+          : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`, env);
 
     return isMatchOrValue(operator)
       ? (() => {
@@ -98,13 +91,10 @@ const visitors = {
         ? !arrowFunctions.isMemberExpressionDefinedOnParameter(second)
             ? {
                 operator: getOperator(path.get("operator"), flipOperator),
-                field: first.node,
+                field: first.node.property.name,
                 value: second.node
               }
-            : new Skip(
-                `Comparing two fields in the same object is not supported.`,
-                env
-              )
+            : new Skip(`Comparing two fields in the same object is not supported.`, env)
         : _parts.length > 1
             ? loop(_parts.slice(1))
             : new Skip(
@@ -123,7 +113,7 @@ const visitors = {
     const { path, key, parents, parentKeys } = env;
     return {
       operator: "$eq",
-      field: path,
+      field: path.node.property.name,
       value: negate
         ? { type: "BooleanLiteral", value: false }
         : { type: "BooleanLiteral", value: true }
@@ -137,15 +127,9 @@ const visitors = {
     const { path, key, parents, parentKeys } = env;
     return path.operator === "!"
       ? Object.keys(visitors).includes(path.type)
-          ? visitors[path.type](
-              { ...env, path: path.get("argument") },
-              negate ? false : true
-            )
+          ? visitors[path.type]({ ...env, path: path.get("argument") }, negate ? false : true)
           : new Skip(`Unsupported type ${path.type} in UnaryExpression.`, env)
-      : new Skip(
-          `Only '!' is supported as the operator in a UnaryExpression.`,
-          env
-        );
+      : new Skip(`Only '!' is supported as the operator in a UnaryExpression.`, env);
   }
 };
 
@@ -159,12 +143,6 @@ export default function(state, analysisState) {
           visitors[path.type]({ path, key, parents, parentKeys }),
         { selector: "path" }
       )
-    },
-    {
-      build: () => () => result => {
-        console.log("P", result);
-        //console.log("nxt", result);
-      }
     }
   );
 }

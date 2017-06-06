@@ -9,36 +9,32 @@ module.exports = {
       left: {
         operator: "$eq",
         field: "assignee",
-        right: {
+        value: {
           type: "Identifier",
           name: "who"
         }
       },
       right: {
-        operator: "$and",
+        operator: "$or",
         left: {
-          operator: "$eq",
+          operator: "$gt",
           field: "priority",
-          right: {
+          value: {
             type: "NumericLiteral",
             value: 2
           }
+        },
+        right: {
+          operator: "$eq",
+          field: "immediate",
+          value: { type: "BooleanLiteral", value: true }
         }
       }
     },
     right: {
       operator: "$eq",
       field: "new",
-      right: {
-        type: "BooleanLiteral",
-        value: true
-      }
-    },
-    operator: "===",
-    field: "assignee",
-    comparandNode: {
-      type: "Identifier",
-      name: "who"
+      value: { type: "BooleanLiteral", value: true }
     }
   },
   source: {

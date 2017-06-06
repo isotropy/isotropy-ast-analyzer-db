@@ -27,20 +27,11 @@ export default function(state, analysisState) {
           name: "filter"
         }
       },
-      arguments: $.arr([
-        predicate(state, analysisState)
-      ], { selector: "path" })
+      arguments: $.arr([predicate(state, analysisState)], { selector: "path" })
     },
     {
       build: () => () => result =>
-        result instanceof Match
-          ? filter(result.value.object, {
-              filter: predicate(
-                result.value.arguments[0].body,
-                result.value.arguments[0].params[0]
-              )
-            })
-          : result
+        filter(result.value.object, { predicate: result.value.arguments[0] })
     }
   );
 }
