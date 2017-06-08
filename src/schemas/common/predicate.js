@@ -92,7 +92,7 @@ const visitors = {
             ? {
                 operator: getOperator(path.get("operator"), flipOperator),
                 field: first.node.property.name,
-                value: second.node
+                valueNode: second.node
               }
             : new Skip(`Comparing two fields in the same object is not supported.`, env)
         : _parts.length > 1
@@ -114,7 +114,7 @@ const visitors = {
     return {
       operator: "$eq",
       field: path.node.property.name,
-      value: negate
+      valueNode: negate
         ? { type: "BooleanLiteral", value: false }
         : { type: "BooleanLiteral", value: true }
     };

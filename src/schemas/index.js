@@ -1,7 +1,7 @@
 export { default as collection } from "./collection";
 export { default as count } from "./count";
 // export { default as del } from "./delete";
-// export { default as insert } from "./insert";
+export { default as insert } from "./insert";
 export { default as map } from "./map";
 export { default as root } from "./root";
 export { default as select } from "./select";

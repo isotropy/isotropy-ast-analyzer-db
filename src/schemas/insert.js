@@ -1,64 +1,32 @@
 import { source } from "../chimpanzee-utils";
-import { collection, map, sort } from "./";
-import {
-  parse,
-  capture,
-  composite,
-  any,
-  array,
-  map as mapResult,
-  optionalItem,
-  Match
-} from "chimpanzee";
-import { slice } from "../db-statements";
+import { collection } from "./";
+import { capture, Match } from "chimpanzee";
+import composite from "../chimpanzee-utils/composite";
+import R from "ramda";
+import { insert } from "../db-statements";
 
 export default function(state, analysisState) {
   return composite(
     {
-      type: "CallExpression",
-      callee: {
-        type: "MemberExpression",
-        object: source([collection, map, sort])(state, analysisState),
-        // object: any(
-        //   [collection, map].map(fn => (obj, key, p, pk) => context =>
-        //     parse(fn(state, analysisState))(obj, key, p, pk)(context)),
-        //   { selector: "path" }
-        // ),
-        property: {
-          type: "Identifier",
-          name: "slice"
-        }
-      },
-      arguments: array(
-        [
-          mapResult(
-            {
-              type: "NumericLiteral",
-              value: capture()
-            },
-            s => s.value
-          ),
-          optionalItem(
-            mapResult(
-              {
-                type: "NumericLiteral",
-                value: capture()
-              },
-              s => s.value
-            )
-          )
-        ],
-        { key: "args" }
-      )
+      type: "AssignmentExpression",
+      operator: "=",
+      left: source([collection])(state, analysisState),
+      right: {
+        type: "CallExpression",
+        callee: {
+          type: "MemberExpression",
+          object: source([collection])(state, analysisState),
+          property: {
+            type: "Identifier",
+            name: "concat"
+          }
+        },
+        arguments: capture()
+      }
     },
     {
       build: obj => context => result =>
-        result instanceof Match
-          ? slice(result.value.object, {
-              from: result.value.args[0],
-              to: result.value.args[1]
-            })
-          : result
+        result instanceof Match ? insert(result.value.left, { items: result.value.arguments[0] }) : result
     }
   );
 }

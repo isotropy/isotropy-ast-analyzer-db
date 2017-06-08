@@ -1,14 +1,6 @@
 import { source } from "../chimpanzee-utils";
 import { collection, map, sort } from "./";
-import {
-  parse,
-  capture,
-  any,
-  array,
-  map as mapResult,
-  optionalItem,
-  Match
-} from "chimpanzee";
+import { capture, array, map as mapResult, optionalItem, Match } from "chimpanzee";
 import { slice } from "../db-statements";
 import composite from "../chimpanzee-utils/composite";
 

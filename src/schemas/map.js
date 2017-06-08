@@ -1,14 +1,4 @@
-import {
-  capture,
-  any,
-  array,
-  optionalItem,
-  literal,
-  repeatingItem,
-  Match,
-  Skip
-} from "chimpanzee";
-
+import { capture, array, repeatingItem, Match } from "chimpanzee";
 import { map } from "../db-statements";
 import { source } from "../chimpanzee-utils";
 import { collection, slice } from "./";

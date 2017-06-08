@@ -9,7 +9,7 @@ module.exports = {
       left: {
         operator: "$eq",
         field: "assignee",
-        value: {
+        valueNode: {
           type: "Identifier",
           name: "who"
         }
@@ -19,7 +19,7 @@ module.exports = {
         left: {
           operator: "$gt",
           field: "priority",
-          value: {
+          valueNode: {
             type: "NumericLiteral",
             value: 2
           }
@@ -27,14 +27,14 @@ module.exports = {
         right: {
           operator: "$eq",
           field: "immediate",
-          value: { type: "BooleanLiteral", value: true }
+          valueNode: { type: "BooleanLiteral", value: true }
         }
       }
     },
     right: {
       operator: "$eq",
       field: "new",
-      value: { type: "BooleanLiteral", value: true }
+      valueNode: { type: "BooleanLiteral", value: true }
     }
   },
   source: {

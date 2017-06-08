@@ -24,9 +24,9 @@ export default function(opts) {
           path.skip;
         },
 
-        // AssignmentExpression(path, state) {
-        //   analyze(write.analyzeAssignmentExpression, path, state);
-        // },
+        AssignmentExpression(path, state) {
+          analyze(analyzers.write.analyzeAssignmentExpression, path, state);
+        },
 
         MemberExpression(path, state) {
           analyze(analyzers.read.analyzeMemberExpression, path, state);

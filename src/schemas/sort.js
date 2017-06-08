@@ -110,7 +110,10 @@ function getSortExpression1({
                 : undefined;
 
               return (
-                result || (_expressions.length > 1 ? loop(_expressions.slice(1)) : new Skip(INVALID_EXPR_ERROR))
+                result ||
+                (_expressions.length > 1
+                  ? loop(_expressions.slice(1))
+                  : new Skip(INVALID_EXPR_ERROR))
               );
             })(expressions);
 
