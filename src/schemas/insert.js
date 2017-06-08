@@ -26,7 +26,7 @@ export default function(state, analysisState) {
     },
     {
       build: obj => context => result =>
-        result instanceof Match ? insert(result.value.left, { items: result.value.arguments[0] }) : result
+        result instanceof Match ? insert(result.value.left, { itemsNode: result.value.arguments[0] }) : result
     }
   );
 }

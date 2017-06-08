@@ -44,8 +44,8 @@ export function length(command) {
 }
 
 export function insert(command, args) {
-  const { items } = args;
-  return createModification("insert", { items }, command);
+  const { itemsNode } = args;
+  return createModification("insert", { itemsNode }, command);
 }
 
 export function update(command, args) {
