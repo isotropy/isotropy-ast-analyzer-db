@@ -22,12 +22,8 @@ function getOperator(op, flipOperator) {
     [["<"], ["$lt", "$gte"]],
     [["!=", "!=="], ["$ne"]]
   ];
-  const match = map.find(([jsOperators, dbOperators]) =>
-    jsOperators.includes(op.node)
-  );
-  return match
-    ? !flipOperator ? match[1][0] : match[1][1] || match[1][0]
-    : undefined;
+  const match = map.find(([jsOperators, dbOperators]) => jsOperators.includes(op.node));
+  return match ? (!flipOperator ? match[1][0] : match[1][1] || match[1][0]) : undefined;
 }
 
 const visitors = {
@@ -53,18 +49,15 @@ const visitors = {
     const operator = node.operator === "&&"
       ? negate ? "$or" : "$and"
       : node.operator === "||"
-          ? negate ? "$and" : "$or"
-          : new Skip(
-              `Unsupported operator ${node.operator} in LogicalExpression.`,
-              env
-            );
+        ? negate ? "$and" : "$or"
+        : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`, env);
 
     return isMatchOrValue(operator)
       ? (() => {
-          const leftVal = visitors[left.type]({ ...env, path: left });
+          const leftVal = visitors[left.type]({ ...env, path: left }, negate);
           return isMatchOrValue(leftVal)
             ? (() => {
-                const rightVal = visitors[right.type]({ ...env, path: right });
+                const rightVal = visitors[right.type]({ ...env, path: right }, negate);
                 return isMatchOrValue(rightVal)
                   ? {
                       operator,
@@ -88,7 +81,7 @@ const visitors = {
     const right = path.get("right");
 
     //See if left or right references the collection variable.
-    const parts = [[left, right, !negate], [right, left, !!negate]];
+    const parts = [[left, right, !!negate], [right, left, !negate]];
     const fieldOpAndVal = (function loop(_parts) {
       const [first, second, flipOperator] = _parts[0];
 
@@ -96,21 +89,18 @@ const visitors = {
       //  NOT ALLOWED: todo => todo.likeCount > todo.dislikeCount
       return arrowFunctions.isMemberExpressionDefinedOnParameter(first)
         ? !arrowFunctions.isMemberExpressionDefinedOnParameter(second)
-            ? {
-                operator: getOperator(path.get("operator"), flipOperator),
-                field: first.node.property.name,
-                valueNode: second.node
-              }
-            : new Skip(
-                `Comparing two fields in the same object is not supported.`,
-                env
-              )
+          ? {
+              operator: getOperator(path.get("operator"), flipOperator),
+              field: first.node.property.name,
+              valueNode: second.node
+            }
+          : new Skip(`Comparing two fields in the same object is not supported.`, env)
         : _parts.length > 1
-            ? loop(_parts.slice(1))
-            : new Skip(
-                `Neither of the fields in the predicate expression referenced the database collection.`,
-                env
-              );
+          ? loop(_parts.slice(1))
+          : new Skip(
+              `Neither of the fields in the predicate expression referenced the database collection.`,
+              env
+            );
     })(parts);
 
     return fieldOpAndVal;
@@ -124,9 +114,7 @@ const visitors = {
     return {
       operator: "$eq",
       field: path.node.property.name,
-      valueNode: negate
-        ? { type: "BooleanLiteral", value: false }
-        : { type: "BooleanLiteral", value: true }
+      valueNode: { type: "BooleanLiteral", value: !negate }
     };
   },
 
@@ -137,15 +125,9 @@ const visitors = {
     const { path, key, parents, parentKeys } = env;
     return path.operator === "!"
       ? Object.keys(visitors).includes(path.type)
-          ? visitors[path.type](
-              { ...env, path: path.get("argument") },
-              negate ? false : true
-            )
-          : new Skip(`Unsupported type ${path.type} in UnaryExpression.`, env)
-      : new Skip(
-          `Only '!' is supported as the operator in a UnaryExpression.`,
-          env
-        );
+        ? visitors[path.type]({ ...env, path: path.get("argument") }, !negate)
+        : new Skip(`Unsupported type ${path.type} in UnaryExpression.`, env)
+      : new Skip(`Only '!' is supported as the operator in a UnaryExpression.`, env);
   }
 };
 
