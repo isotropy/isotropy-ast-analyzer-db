@@ -17,13 +17,13 @@ export default function(state, analysisState) {
           name: "filter"
         }
       },
-      arguments: $.arr([
-        composite({
+      arguments: [
+        {
           type: "ArrowFunctionExpression",
           params: $.arr([capture()], { selector: "path" }),
           body: $.func(predicate(state, analysisState), { selector: "path" })
-        })
-      ], { selector: "path" })
+        }
+      ]
     },
     {
       build: () => () => result =>

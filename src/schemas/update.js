@@ -11,56 +11,32 @@ import { update } from "../db-statements";
       AND the converse
     db.users = db.users.filter(x => x.id !== 10`` ? x : { ...x, active: true })
 */
-const updateExpression = $.obj(
+const updateExpression = composite(
   {
     type: "ArrowFunctionExpression",
-    params: [
-      {
-        type: "Identifier",
-        name: capture("name")
-      }
-    ],
+    params: [capture()],
     body: {
       type: "ConditionalExpression",
-      test: {
-        type: "BinaryExpression",
-        left: {
-          type: "MemberExpression",
-          object: {
-            type: "Identifier",
-            name: capture("lhs1")
-          },
-          property: {
-            type: "Identifier",
-            name: capture("lhsProp1")
-          }
-        },
-        operator: capture("operator1"),
-        right: {
-          type: "MemberExpression",
-          object: {
-            type: "Identifier",
-            name: capture("rhs1")
-          },
-          property: {
-            type: "Identifier",
-            name: capture("rhsProp1")
-          }
-        }
-      },
+      test: capture({ selector: "path" }),
       consequent: capture(),
       alternate: capture()
     }
   },
   {
-    build: obj => context => result =>
-      result instanceof Match
-        ? getSortExpression1({
-            param1: result.value.params[0].name,
-            param2: result.value.params[1].name,
-            ...result.value
-          })
-        : result
+    build: obj => context => result => {
+      const negate = R.equals(result.value.alternate, result.value.params[0])
+        ? false
+        : R.equals(result.value.consequent, result.value.params[0])
+          ? true
+          : new Skip(
+              `Invalid update expression. Use the map() function in the prescribed form.`
+            );
+      return negate instanceof Skip
+        ? negate
+        : (() => {
+            const result = parse();
+          })();
+    }
   }
 );
 
