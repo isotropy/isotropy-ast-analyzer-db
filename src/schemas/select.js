@@ -1,4 +1,4 @@
-import { parse, array, builtins as $ } from "chimpanzee";
+import { parse, array, capture, builtins as $ } from "chimpanzee";
 import { source } from "../chimpanzee-utils";
 import { collection, map, sort } from "./";
 import { filter } from "../db-statements";
@@ -17,7 +17,13 @@ export default function(state, analysisState) {
           name: "filter"
         }
       },
-      arguments: $.arr([predicate(state, analysisState)], { selector: "path" })
+      arguments: $.arr([
+        composite({
+          type: "ArrowFunctionExpression",
+          params: $.arr([capture()], { selector: "path" }),
+          body: $.func(predicate(state, analysisState), { selector: "path" })
+        })
+      ], { selector: "path" })
     },
     {
       build: () => () => result =>

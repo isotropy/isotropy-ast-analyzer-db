@@ -11,7 +11,6 @@ import { update } from "../db-statements";
       AND the converse
     db.users = db.users.filter(x => x.id !== 10`` ? x : { ...x, active: true })
 */
-
 const updateExpression = $.obj(
   {
     type: "ArrowFunctionExpression",
@@ -90,9 +89,7 @@ export default function(state, analysisState) {
           ? (() => {
               return console.log(result) || Skip("NOPE!");
             })()
-          : new Skip(
-              `The result of the map() must be assigned to the same collection.`
-            )
+          : new Skip(`The result of the map() must be assigned to the same collection.`)
       // result instanceof Match ? insert(result.value.left, { itemsNode: result.value.arguments[0] }) : result
     }
   );

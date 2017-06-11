@@ -132,13 +132,6 @@ const visitors = {
 };
 
 export default function(state, analysisState, negate) {
-  return composite({
-    type: "ArrowFunctionExpression",
-    params: $.arr([capture()], { selector: "path" }),
-    body: $.func(
-      (path, key, parents, parentKeys) => context =>
-        visitors[path.type]({ path, key, parents, parentKeys }, negate),
-      { selector: "path" }
-    )
-  });
+  return (path, key, parents, parentKeys) => context =>
+    visitors[path.type]({ path, key, parents, parentKeys }, negate);
 }
