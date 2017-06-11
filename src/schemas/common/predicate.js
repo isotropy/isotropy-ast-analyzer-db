@@ -22,8 +22,12 @@ function getOperator(op, flipOperator) {
     [["<"], ["$lt", "$gte"]],
     [["!=", "!=="], ["$ne"]]
   ];
-  const match = map.find(([jsOperators, dbOperators]) => jsOperators.includes(op.node));
-  return match ? (!flipOperator ? match[1][0] : match[1][1] || match[1][0]) : undefined;
+  const match = map.find(([jsOperators, dbOperators]) =>
+    jsOperators.includes(op.node)
+  );
+  return match
+    ? !flipOperator ? match[1][0] : match[1][1] || match[1][0]
+    : undefined;
 }
 
 const visitors = {
@@ -47,10 +51,13 @@ const visitors = {
     const right = path.get("right");
 
     const operator = node.operator === "&&"
-      ? "$and"
+      ? negate ? "$or" : "$and"
       : node.operator === "||"
-          ? "$or"
-          : new Skip(`Unsupported operator ${node.operator} in LogicalExpression.`, env);
+          ? negate ? "$and" : "$or"
+          : new Skip(
+              `Unsupported operator ${node.operator} in LogicalExpression.`,
+              env
+            );
 
     return isMatchOrValue(operator)
       ? (() => {
@@ -81,7 +88,7 @@ const visitors = {
     const right = path.get("right");
 
     //See if left or right references the collection variable.
-    const parts = [[left, right, false], [right, left, true]];
+    const parts = [[left, right, !negate], [right, left, !!negate]];
     const fieldOpAndVal = (function loop(_parts) {
       const [first, second, flipOperator] = _parts[0];
 
@@ -94,7 +101,10 @@ const visitors = {
                 field: first.node.property.name,
                 valueNode: second.node
               }
-            : new Skip(`Comparing two fields in the same object is not supported.`, env)
+            : new Skip(
+                `Comparing two fields in the same object is not supported.`,
+                env
+              )
         : _parts.length > 1
             ? loop(_parts.slice(1))
             : new Skip(
@@ -127,22 +137,26 @@ const visitors = {
     const { path, key, parents, parentKeys } = env;
     return path.operator === "!"
       ? Object.keys(visitors).includes(path.type)
-          ? visitors[path.type]({ ...env, path: path.get("argument") }, negate ? false : true)
+          ? visitors[path.type](
+              { ...env, path: path.get("argument") },
+              negate ? false : true
+            )
           : new Skip(`Unsupported type ${path.type} in UnaryExpression.`, env)
-      : new Skip(`Only '!' is supported as the operator in a UnaryExpression.`, env);
+      : new Skip(
+          `Only '!' is supported as the operator in a UnaryExpression.`,
+          env
+        );
   }
 };
 
-export default function(state, analysisState) {
-  return composite(
-    {
-      type: "ArrowFunctionExpression",
-      params: $.arr([capture()], { selector: "path" }),
-      body: $.func(
-        (path, key, parents, parentKeys) => context =>
-          visitors[path.type]({ path, key, parents, parentKeys }),
-        { selector: "path" }
-      )
-    }
-  );
+export default function(state, analysisState, negate) {
+  return composite({
+    type: "ArrowFunctionExpression",
+    params: $.arr([capture()], { selector: "path" }),
+    body: $.func(
+      (path, key, parents, parentKeys) => context =>
+        visitors[path.type]({ path, key, parents, parentKeys }, negate),
+      { selector: "path" }
+    )
+  });
 }
