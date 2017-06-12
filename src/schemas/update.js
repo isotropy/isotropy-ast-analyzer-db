@@ -11,34 +11,6 @@ import { update } from "../db-statements";
       AND the converse
     db.users = db.users.filter(x => x.id !== 10`` ? x : { ...x, active: true })
 */
-const updateExpression = composite(
-  {
-    type: "ArrowFunctionExpression",
-    params: [capture()],
-    body: {
-      type: "ConditionalExpression",
-      test: capture({ selector: "path" }),
-      consequent: capture(),
-      alternate: capture()
-    }
-  },
-  {
-    build: obj => context => result => {
-      const negate = R.equals(result.value.alternate, result.value.params[0])
-        ? false
-        : R.equals(result.value.consequent, result.value.params[0])
-          ? true
-          : new Skip(
-              `Invalid update expression. Use the map() function in the prescribed form.`
-            );
-      return negate instanceof Skip
-        ? negate
-        : (() => {
-            const result = parse();
-          })();
-    }
-  }
-);
 
 export default function(state, analysisState) {
   return composite(
@@ -56,17 +28,42 @@ export default function(state, analysisState) {
             name: "map"
           }
         },
-        arguments: updateExpression()
+        arguments: [
+          {
+            type: "ArrowFunctionExpression",
+            params: [capture()],
+            body: {
+              type: "ConditionalExpression",
+              test: capture({ selector: "path" }),
+              consequent: capture(),
+              alternate: capture()
+            }
+          }
+        ]
       }
     },
     {
       build: obj => context => result =>
         R.equals(result.value.left, result.value.object)
           ? (() => {
-              return console.log(result) || Skip("NOPE!");
+              const negate = R.equals(result.value.alternate, result.value.params[0])
+                ? false
+                : R.equals(result.value.consequent, result.value.params[0])
+                  ? true
+                  : new Skip(
+                      `Invalid update expression. Use the map() function in the prescribed form.`
+                    );
+              return negate instanceof Skip
+                ? negate
+                : (() => {
+                    const predicateResult = parse(
+                      predicate(state, analysisState, negate),
+                      result.value.test
+                    );
+
+                  })();
             })()
           : new Skip(`The result of the map() must be assigned to the same collection.`)
-      // result instanceof Match ? insert(result.value.left, { itemsNode: result.value.arguments[0] }) : result
     }
   );
 }

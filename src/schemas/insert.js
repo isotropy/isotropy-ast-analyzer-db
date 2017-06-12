@@ -26,7 +26,11 @@ export default function(state, analysisState) {
     },
     {
       build: obj => context => result =>
-        result instanceof Match ? insert(result.value.left, { itemsNode: result.value.arguments[0] }) : result
+        result instanceof Match
+          ? R.equals(result.value.left, result.value.object)
+            ? insert(result.value.left, { itemsNode: result.value.arguments[0] })
+            : new Skip(`The result of the concat() must be assigned to the same collection.`)
+          : result
     }
   );
 }
