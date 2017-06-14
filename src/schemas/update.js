@@ -1,18 +1,55 @@
 import { source } from "../chimpanzee-utils";
 import { collection } from "./";
-import { capture, Match } from "chimpanzee";
+import { parse, capture, exists, any, array, repeatingItem, Match } from "chimpanzee";
 import composite from "../chimpanzee-utils/composite";
 import R from "ramda";
 import { update } from "../db-statements";
 
-/*
-  There are two types of update expressions.
-    db.users = db.users.filter(x => x.id === 10 ? { ...x, active: true } : x)
-      AND the converse
-    db.users = db.users.filter(x => x.id !== 10`` ? x : { ...x, active: true })
-*/
-
 export default function(state, analysisState) {
+  function getArrowFunctionBody(identifier) {
+    /*
+      There are two types of update expressions.
+        1. STANDARD
+          db.users = db.users.filter(x => x.id === 10 ? { ...x, active: true } : x)
+        2. INVERSE
+          db.users = db.users.filter(x => x.id !== 10`` ? x : { ...x, active: true })
+    */
+    const conditionalExpression = {
+      type: "ConditionalExpression",
+      test: capture({ selector: "path" })
+    };
+
+    const updatedObject = {
+      type: "ObjectExpression",
+      properties: array([
+        {
+          type: "SpreadProperty",
+          argument: identifier
+        },
+        repeatingItem(capture())
+      ])
+    };
+
+    function identifierPropsOf(x) {
+      const intersectObj = (a, b) => R.pick(R.keys(a), b);
+      return intersectObj(identifier, x);
+    }
+
+    const standardConditionExpression = {
+      ...conditionalExpression,
+      consequent: updatedObject,
+      alternate: exists(x => R.equals(identifierPropsOf(x), identifier))
+    };
+
+    const inverseConditionExpression = {
+      ...conditionalExpression,
+      consequent: exists(x => R.equals(identifierPropsOf(x), identifier)),
+      alternate: updatedObject
+    };
+
+    return any([standardConditionExpression, inverseConditionExpression]);
+  }
+
   return composite(
     {
       type: "AssignmentExpression",
@@ -32,12 +69,7 @@ export default function(state, analysisState) {
           {
             type: "ArrowFunctionExpression",
             params: [capture()],
-            body: {
-              type: "ConditionalExpression",
-              test: capture({ selector: "path" }),
-              consequent: capture(),
-              alternate: capture()
-            }
+            body: capture()
           }
         ]
       }
@@ -46,22 +78,17 @@ export default function(state, analysisState) {
       build: obj => context => result =>
         R.equals(result.value.left, result.value.object)
           ? (() => {
-              const negate = R.equals(result.value.alternate, result.value.params[0])
-                ? false
-                : R.equals(result.value.consequent, result.value.params[0])
-                  ? true
-                  : new Skip(
-                      `Invalid update expression. Use the map() function in the prescribed form.`
-                    );
-              return negate instanceof Skip
-                ? negate
-                : (() => {
-                    const predicateResult = parse(
-                      predicate(state, analysisState, negate),
-                      result.value.test
-                    );
-
-                  })();
+              const { params, body } = result.value.arguments[0];
+              const identifier = { type: "Identifier", name: params[0].name };
+              const arrowFunctionBody = getArrowFunctionBody(identifier);
+              const update = parse(arrowFunctionBody)(body)(context);
+              console.log(update);
+              return update instanceof Match
+                ? () => {
+                    console.log(update);
+                    return new Skip(`yoyo!`);
+                  }
+                : update;
             })()
           : new Skip(`The result of the map() must be assigned to the same collection.`)
     }

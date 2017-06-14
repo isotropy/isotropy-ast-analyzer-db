@@ -9,7 +9,7 @@
   "main": "dist/isotropy-ast-analyzer-db.js",
   "dependencies": {
     "ast-crumbs": "0.0.2",
-    "chimpanzee": "0.0.48",
+    "chimpanzee": "0.0.50",
     "lazily": "^0.0.17",
     "ramda": "^0.23.0"
   },
