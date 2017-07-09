@@ -1,6 +1,16 @@
 import { source } from "../chimpanzee-utils";
 import { collection } from "./";
-import { parse, capture, exists, any, array, repeatingItem, Match } from "chimpanzee";
+import {
+  parse,
+  capture,
+  exists,
+  any,
+  array,
+  repeatingItem,
+  Match,
+  builtins as $
+} from "chimpanzee";
+import predicate from "./common/predicate";
 import composite from "../chimpanzee-utils/composite";
 import R from "ramda";
 import { update } from "../db-statements";
@@ -14,10 +24,12 @@ export default function(state, analysisState) {
         2. INVERSE
           db.users = db.users.filter(x => x.id !== 10`` ? x : { ...x, active: true })
     */
-    const conditionalExpression = {
+    const conditionalExpression = negate => ({
       type: "ConditionalExpression",
-      test: capture({ selector: "path" })
-    };
+      test: $.func(predicate(state, analysisState, negate), {
+        selector: "path"
+      })
+    });
 
     const updatedObject = {
       type: "ObjectExpression",
@@ -26,7 +38,7 @@ export default function(state, analysisState) {
           type: "SpreadProperty",
           argument: identifier
         },
-        repeatingItem(capture())
+        repeatingItem(capture({ selector: "path" }))
       ])
     };
 
@@ -35,17 +47,17 @@ export default function(state, analysisState) {
       return intersectObj(identifier, x);
     }
 
-    const standardConditionExpression = {
-      ...conditionalExpression,
+    const standardConditionExpression = composite({
+      ...conditionalExpression(),
       consequent: updatedObject,
       alternate: exists(x => R.equals(identifierPropsOf(x), identifier))
-    };
+    });
 
-    const inverseConditionExpression = {
-      ...conditionalExpression,
+    const inverseConditionExpression = composite({
+      ...conditionalExpression(true),
       consequent: exists(x => R.equals(identifierPropsOf(x), identifier)),
       alternate: updatedObject
-    };
+    });
 
     return any([standardConditionExpression, inverseConditionExpression]);
   }
@@ -68,8 +80,8 @@ export default function(state, analysisState) {
         arguments: [
           {
             type: "ArrowFunctionExpression",
-            params: [capture()],
-            body: capture()
+            params: [capture({ selector: "path" })],
+            body: capture({ selector: "path" })
           }
         ]
       }
@@ -79,18 +91,22 @@ export default function(state, analysisState) {
         R.equals(result.value.left, result.value.object)
           ? (() => {
               const { params, body } = result.value.arguments[0];
-              const identifier = { type: "Identifier", name: params[0].name };
+              const identifier = {
+                type: "Identifier",
+                name: params[0].node.name
+              };
               const arrowFunctionBody = getArrowFunctionBody(identifier);
               const update = parse(arrowFunctionBody)(body)(context);
-              console.log(update);
               return update instanceof Match
                 ? () => {
-                    console.log(update);
+                    console.log("LAST", update);
                     return new Skip(`yoyo!`);
                   }
                 : update;
             })()
-          : new Skip(`The result of the map() must be assigned to the same collection.`)
+          : new Skip(
+              `The result of the map() must be assigned to the same collection.`
+            )
     }
   );
 }
