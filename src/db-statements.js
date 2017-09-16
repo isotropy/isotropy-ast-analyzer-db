@@ -3,16 +3,16 @@ export function createCollection(args) {
   return { type: "query", module, identifier, collection };
 }
 
-export function createQuery(name, props, source) {
-  return { type: "query", method: name, ...props, source };
+export function createQuery(operation, props, source) {
+  return { type: "query", operation, ...props, source };
 }
 
-export function createValue(name, props, source) {
-  return { type: "value", property: name, ...props, source };
+export function createValue(operation, props, source) {
+  return { type: "value", operation, ...props, source };
 }
 
-export function createModification(name, props, source) {
-  return { type: name, ...props, source };
+export function createModification(operation, props, source) {
+  return { type: "modification", operation, ...props, source };
 }
 
 export function filter(command, args) {
@@ -39,8 +39,8 @@ export function sort(command, args) {
   return createQuery("sort", { fields }, command);
 }
 
-export function length(command) {
-  return createValue("length", {}, command);
+export function count(command) {
+  return createValue("count", {}, command);
 }
 
 export function insert(command, args) {

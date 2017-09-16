@@ -1,6 +1,6 @@
 import { collection } from "./";
 import { capture, any, Match } from "chimpanzee";
-import { length } from "../db-statements";
+import { count } from "../db-statements";
 import composite from "../chimpanzee-utils/composite";
 
 export default function(state, analysisState) {
@@ -15,7 +15,7 @@ export default function(state, analysisState) {
     },
     {
       build: obj => context => result =>
-        result instanceof Match ? length(result.value.object) : result
+        result instanceof Match ? count(result.value.object) : result
     }
   );
 }

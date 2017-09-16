@@ -9,7 +9,10 @@ export default function(analysisState) {
       }));
 
       const moduleName = babelPath.get("source").node.value;
-      const resolvedName = path.resolve(path.dirname(state.file.opts.filename), moduleName);
+      const resolvedName = path.resolve(
+        path.dirname(state.file.opts.filename),
+        moduleName
+      );
 
       const dbModule = dbModules.find(p => p.value === resolvedName);
       if (dbModule) {
@@ -18,6 +21,7 @@ export default function(analysisState) {
           module: dbModule.key,
           binding: babelPath.scope.bindings[specifier]
         });
+        return true;
       }
     }
   };
