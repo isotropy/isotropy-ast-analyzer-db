@@ -14,7 +14,13 @@ export default function(analysisState) {
     */
     analyzeCallExpression(path, state) {
       return makeAnalyzer(
-        [schemas.map, schemas.slice, schemas.sort, schemas.select],
+        [
+          schemas.map,
+          schemas.slice,
+          schemas.sort,
+          schemas.select,
+          schemas.readCallError
+        ],
         path,
         state,
         analysisState
@@ -27,7 +33,12 @@ export default function(analysisState) {
       myDb.todos.filter().length
     */
     analyzeMemberExpression(path, state) {
-      return makeAnalyzer([schemas.count, schemas.collection], path, state, analysisState);
+      return makeAnalyzer(
+        [schemas.count, schemas.collection, schemas.readMemberError],
+        path,
+        state,
+        analysisState
+      );
     }
   };
 }

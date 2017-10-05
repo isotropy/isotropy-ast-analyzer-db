@@ -9,7 +9,12 @@ export default function(analysisState) {
         myDb.todos = myDb.todos.concat({ title, assignee });
     */
     analyzeAssignmentExpression(path, state) {
-      return makeAnalyzer([schemas.insert, schemas.update], path, state, analysisState);
+      return makeAnalyzer(
+        [schemas.insert, schemas.update, schemas.writeError],
+        path,
+        state,
+        analysisState
+      );
     }
   };
 }
