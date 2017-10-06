@@ -2,10 +2,10 @@ module.exports = {
   type: "query",
   from: 10,
   to: 20,
-  method: "slice",
+  operation: "slice",
   source: {
     type: "query",
-    method: "sort",
+    operation: "sort",
     fields: [
       {
         field: "priority",
@@ -14,7 +14,7 @@ module.exports = {
     ],
     source: {
       type: "query",
-      module: "todosDbModule",
+      module: "mongodb://localhost:27017/isotropy-test-db",
       identifier: "myDb",
       collection: "todos"
     }

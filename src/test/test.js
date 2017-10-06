@@ -26,10 +26,23 @@ describe("isotropy-ast-analyzer-db", () => {
             [
               pluginInfo.plugin,
               {
-                databaseModules: {
-                  todosDbModule: "./dist/test/fixtures/my-db",
-                  backupDbModule: "./dist/test/fixtures/backup-db"
-                }
+                projects: [
+                  {
+                    dir: "dist/test",
+                    modules: [
+                      {
+                        source: "fixtures/my-db",
+                        locations: [
+                          {
+                            name: "todos",
+                            connectionString:
+                              "mongodb://localhost:27017/isotropy-test-db"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
               }
             ],
             "transform-object-rest-spread"
@@ -40,7 +53,7 @@ describe("isotropy-ast-analyzer-db", () => {
           },
           babelrc: false
         });
-        pluginInfo.getResult();
+        return pluginInfo.getResult();
       };
 
       return dir.includes("error")
@@ -48,9 +61,8 @@ describe("isotropy-ast-analyzer-db", () => {
             /Compilation failed. Not a valid isotropy operation./
           )
         : (() => {
-            callWrapper();
             const expected = require(`./fixtures/${dir}/expected`);
-            const result = pluginInfo.getResult();
+            const result = callWrapper();
             const actual = clean(result.analysis);
             actual.should.deepEqual(expected);
           })();
@@ -79,11 +91,11 @@ describe("isotropy-ast-analyzer-db", () => {
     ["sort-alt-reverse", "sort-alt-reverse"],
     ["sort-alt-reverse-negative", "sort-alt-reverse-negative"],
     ["sort-alt-slice", "sort-alt-slice"],
-    ["sort-slice", "sort-slice"],
-    ["update", "update"],
-    ["read-call-error", "read-call-error"],
-    ["read-member-error", "read-member-error"],
-    ["write-error", "write-error"]
+    ["sort-slice", "sort-slice"]
+    // ["update", "update"],
+    // ["read-call-error", "read-call-error"],
+    // ["read-member-error", "read-member-error"],
+    // ["write-error", "write-error"]
   ];
 
   for (const test of tests) {

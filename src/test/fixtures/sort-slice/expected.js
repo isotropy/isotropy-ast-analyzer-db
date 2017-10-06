@@ -1,12 +1,17 @@
 module.exports = {
   type: "query",
-  method: "slice",
+  operation: "slice",
   from: 10,
   to: 20,
   source: {
     type: "query",
-    method: "sort",
+    operation: "sort",
     fields: [{ field: "assignee", ascending: true }],
-    source: { type: "query", module: "todosDbModule", identifier: "myDb", collection: "todos" }
+    source: {
+      type: "query",
+      module: "mongodb://localhost:27017/isotropy-test-db",
+      identifier: "myDb",
+      collection: "todos"
+    }
   }
 };

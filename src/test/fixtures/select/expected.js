@@ -1,7 +1,7 @@
 //todo.assignee === who && (todo.priority > 2 || todo.immediate) && todo.new
 module.exports = {
   type: "query",
-  method: "filter",
+  operation: "filter",
   predicate: {
     operator: "$and",
     left: {
@@ -39,7 +39,7 @@ module.exports = {
   },
   source: {
     type: "query",
-    module: "todosDbModule",
+    module: "mongodb://localhost:27017/isotropy-test-db",
     identifier: "myDb",
     collection: "todos"
   }

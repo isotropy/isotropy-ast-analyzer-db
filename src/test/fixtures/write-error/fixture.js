@@ -1,5 +1,5 @@
-import myFs from "../my-fs";
+import myDb from "../my-db";
 
 async function writeError() {
-  myFs.docs = myFs.docs.pop();
+  myDb.todos = myDb.todos.pop();
 }
