@@ -1,14 +1,13 @@
 {
   "name": "isotropy-ast-analyzer-db",
   "version": "0.0.20",
-  "author": "Jeswin<jeswinpk@agilehead.com>",
+  "author": "Isotropy Team<isotropy@agilehead.com>",
   "scripts": {
     "test": "mocha dist/test/test.js",
     "debug": "mocha dist/test/test.js --debug-brk"
   },
   "main": "dist/isotropy-ast-analyzer-db.js",
   "dependencies": {
-    "ast-crumbs": "0.0.2",
     "chimpanzee": "0.0.50",
     "lazily": "^0.0.17",
     "ramda": "^0.23.0"
