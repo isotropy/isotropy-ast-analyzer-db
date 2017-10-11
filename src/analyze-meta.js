@@ -12,7 +12,7 @@ export default function(analysisState) {
         const projectDir = project.dir.startsWith("./")
           ? project.dir
           : "./" + project.dir;
-        absolutePath = path.resolve(projectDir) + "/";
+        const absolutePath = path.resolve(projectDir) + "/";
         return state.file.opts.filename.startsWith(absolutePath);
       });
 
@@ -25,17 +25,19 @@ export default function(analysisState) {
         moduleName
       );
 
-      dbProject.absolutePath = absolutePath;
-
-      const dbModule = dbProject.modules.find(
-        m => dbProject.absolutePath + m.source === resolvedName
-      );
+      const dbModule = dbProject.modules.find(m => {
+        const sourceDir = m.source.startsWith("./")
+          ? m.source
+          : "./" + m.source;
+        const absolutePath = path.resolve(sourceDir);
+        return absolutePath === resolvedName;
+      });
 
       if (!dbModule) return false;
 
       const specifier = babelPath.get("specifiers.0").node.local.name;
       analysisState.importBindings = analysisState.importBindings.concat({
-        module: dbModule.locations,
+        module: dbModule.databases,
         binding: babelPath.scope.bindings[specifier]
       });
       return true;
