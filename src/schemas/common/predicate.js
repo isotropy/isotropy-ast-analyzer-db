@@ -5,7 +5,7 @@ import * as arrowFunctions from "../../chimpanzee-utils/arrow-functions";
 import { isMatchOrValue } from "../../chimpanzee-utils/results";
 import util from "util";
 
-function memberOnFilterParam(path) {
+function memberOnFilterParam(path, filterParam) {
   return (
     path.type === "MemberExpression" &&
     path.get("object").type === "Identifier" &&

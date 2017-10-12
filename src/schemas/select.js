@@ -1,4 +1,4 @@
-import { parse, array, capture, builtins as $ } from "chimpanzee";
+import { parse, array, capture, wrap, builtins as $ } from "chimpanzee";
 import { source } from "../chimpanzee-utils";
 import { collection, map, sort } from "./";
 import { filter } from "../db-statements";
@@ -17,17 +17,30 @@ export default function(state, analysisState) {
           name: "filter"
         }
       },
-      arguments: [
-        {
-          type: "ArrowFunctionExpression",
-          params: $.arr([capture()], { selector: "path" }),
-          body: $.func(predicate(state, analysisState), { selector: "path" })
-        }
-      ]
+      arguments: [{ type: "ArrowFunctionExpression", body: capture(), params: $.arr([capture()], { selector: "default" }) }]
+      //arguments: capture()
+      // arguments: [
+      //   {
+      //     type: "ArrowFunctionExpression",
+      //     params: $.arr([capture()], { selector: "path" }),
+      //     body: capture()
+      //   }
+      // ]
     },
     {
-      build: () => () => result =>
-        filter(result.value.object, { predicate: result.value.arguments[0] })
+      build: obj => context => result => {
+        console.log("RESS", result.value);
+        throw new Error("---->")
+        const _params = result.value.arguments[0].params[0];
+        const _body = result.value.arguments[0].body;
+        const bodySchema = $.func(predicate(state, analysisState), { selector: "path" })
+        const body = parse(bodySchema)(_body)(context);
+        console.log("-----");
+        console.log(bodySchema)
+        console.log(body)
+        throw new Error("djdj")
+        return filter(result.value.object, { predicate: result.value.arguments[0] }) 
+      }        
     }
   );
 }

@@ -10,12 +10,6 @@ ansi-styles@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-2.2.1.tgz#b432dd3358b634cf75e1e4664368240533c1ddbe"
 
-ast-crumbs@0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/ast-crumbs/-/ast-crumbs-0.0.2.tgz#49bd0b54fa17ef829e5acf5a6d3d67bbb945f4ff"
-  dependencies:
-    immutable "^3.8.1"
-
 babel-code-frame@^6.22.0:
   version "6.22.0"
   resolved "https://registry.yarnpkg.com/babel-code-frame/-/babel-code-frame-6.22.0.tgz#027620bee567a88c32561574e7fd0801d33118e4"
@@ -715,10 +709,6 @@ home-or-tmp@^2.0.0:
   dependencies:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.1"
-
-immutable@^3.8.1:
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.1.tgz#200807f11ab0f72710ea485542de088075f68cd2"
 
 inflight@^1.0.4:
   version "1.0.6"
