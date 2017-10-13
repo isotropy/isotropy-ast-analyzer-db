@@ -8,7 +8,7 @@
   },
   "main": "dist",
   "dependencies": {
-    "chimpanzee": "0.0.50",
+    "chimpanzee": "0.0.55",
     "lazily": "^0.0.17",
     "ramda": "^0.23.0"
   },

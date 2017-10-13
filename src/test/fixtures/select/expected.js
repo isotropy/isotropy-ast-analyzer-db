@@ -1,4 +1,14 @@
-//todo.assignee === who && (todo.priority > 2 || todo.immediate) && todo.new
+/*
+  todo.assignee === who && (todo.priority > 2 || todo.immediate) && todo.new
+  
+  {
+    $and: [
+      { assignee: who },
+      { $or: [{ priority: { $gt: 2 } }, { immediate: true }] },
+      { new: true }
+    ];
+  }
+*/
 module.exports = {
   type: "query",
   operation: "filter",

@@ -91,7 +91,7 @@ describe("isotropy-ast-analyzer-db", () => {
     // ["sort-alt-reverse", "sort-alt-reverse"],
     // ["sort-alt-reverse-negative", "sort-alt-reverse-negative"],
     // ["sort-alt-slice", "sort-alt-slice"],
-    // ["sort-slice", "sort-slice"]
+    // ["sort-slice", "sort-slice"],
     // ["update", "update"],
     // ["read-call-error", "read-call-error"],
     // ["read-member-error", "read-member-error"],
