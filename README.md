@@ -52,12 +52,12 @@ const customers = await db.collection("customers").filter(c => c.occupation === 
 const customers = await db.collection("customers").filter(c => c.occupation === "Actor").slice(1, 10)
 
 //Fetch only specific fields
-const customers = await dbdb.collection("customers").filter(c => c.occupation === "Actor").map(c => ({ name: c.name }))
+const customers = await db.collection("customers").filter(c => c.occupation === "Actor").map(c => ({ name: c.name }))
 
 //Update
 await db.collection("customers").update(c => c.name === "Kenneth Parcell", { occupation: "Page" })
 
 //Count
-const count = await dbdb.collection("customers").count();
+const count = await db.collection("customers").count();
 ```
 
