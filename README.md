@@ -43,10 +43,10 @@ const ids = await db.collection("customers").insert(arrayOfCustomers);
 const customers = await db.collection("customers").filter(c => c.occupation === "Actor")
 
 //Sort a query
-const customers = await db.collection("customers").filter(c => c.occupation === "Actor").sort("name")
+const customers = await db.collection("customers").filter(c => c.occupation === "Actor").orderBy("name")
 
 //Sort a query, descending
-const customers = await db.collection("customers").filter(c => c.occupation === "Actor").sortDescending("name")
+const customers = await db.collection("customers").filter(c => c.occupation === "Actor").orderByDescending("name")
 
 //Slice a query
 const customers = await db.collection("customers").filter(c => c.occupation === "Actor").slice(1, 10)
