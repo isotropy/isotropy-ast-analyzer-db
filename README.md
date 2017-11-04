@@ -1,134 +1,63 @@
 Isotropy AST Analyzer for DB
 ============================
-This module abstracts AST analysis for common  database operations so that they don't have to be repeated in every database plugin.
-This is part of the isotropy framework (www.isotropy.org).
 
-This README is not complete. However, parsing the following examples is supported.
+First, we need to create a JS file while represents or emulates our database system on the client-side.
+Here's how you do that.
 
-Create a module "db.js" containing an array that mocks the database.
-The filename can be changed in configuration.
 ```javascript
-//In db.js
-export default [
-  {
-    { title: "buy tickets", assignee: "you", priority: 1 },
-    { title: "search for extra-terrestrials", assignee: "you", priority: 2 }
-  }
-]
+db.init({
+  customers: [
+    {      
+      name: "Jenna Maroney",
+      occupation: "Actor"
+    },
+    {
+      name: "Liz Lemon",
+      occupation: "Producer"
+    }
+  ]
+})
 ```
 
-Perform a database insert
+Usage is easy. Start by importing the file you just created
+
 ```javascript
-import myDb from "./my-db.js";
+import db from "./my-db";
 
-//Insert a single item
-async function addTodo(title, assignee) {
-  myDb.todos = myDb.todos.concat({ title, assignee });
-}
+//Get all records in a collection
+const customers = await db.customers("customers");
 
-//Insert a list of new items
-async function addManyTodos(title, assignee) {
-  const todosList = [
-    { title: "get milk", assignee: "you", priority: 1 },
-    { title: "buy eggs", assignee: "you", priority: 2 }
-  ];
-  myDb.todos = myDb.todos.concat(todosList)
-}
+//Insert a record
+const id = await db.collection("customers").insert({
+  name: "Jack Donaghy",
+  occupation: "Executive"
+});
+
+//Delete a record
+const id = await db.collection("customers").delete(c => c.name === "Jack Donaghy")
+
+//Insert a bunch of records
+const ids = await db.collection("customers").insert(arrayOfCustomers);
+
+//Query customers
+const customers = await db.collection("customers").filter(c => c.occupation === "Actor")
+
+//Sort a query
+const customers = await db.collection("customers").filter(c => c.occupation === "Actor").sort("name")
+
+//Sort a query, descending
+const customers = await db.collection("customers").filter(c => c.occupation === "Actor").sortDescending("name")
+
+//Slice a query
+const customers = await db.collection("customers").filter(c => c.occupation === "Actor").slice(1, 10)
+
+//Fetch only specific fields
+const customers = await dbdb.collection("customers").filter(c => c.occupation === "Actor").map(c => ({ name: c.name }))
+
+//Update
+await db.collection("customers").update(c => c.name === "Kenneth Parcell", { occupation: "Page" })
+
+//Count
+const count = await dbdb.collection("customers").count();
 ```
 
-Get all records
-```javascript
-import myDb from "./my-db.js";
-
-async function getAllTodos(who) {
-  return myDb.todos;
-}
-```
-
-Query a table
-```javascript
-import myDb from "./my-db.js";
-
-async function getTodos(who) {
-  return myDb.todos.filter(todo => todo.assignee === who);
-}
-```
-
-Query and return specific fields
-```javascript
-import myDb from "./my-db.js";
-
-async function getTodos(who) {
-  return myDb.todos
-    .filter(todo => todo.assignee === who)
-    .map(todo => ({ assignee: todo.assignee }));
-}
-```
-
-Limit the number of results
-```javascript
-//Returns rows 10-20
-import myDb from "./my-db.js";
-
-async function getTodos(who) {
-  return myDb.todos
-    .filter(todo => todo.assignee === who)
-    .slice(10, 20);
-}
-```
-
-Order by a specific field
-```javascript
-import myDb from "./my-db.js";
-
-async function getTodos(who) {
-  return myDb.todos
-    .filter(todo => todo.assignee === who)
-    .sort((x, y) => x.assignee > y.assignee);
-}
-```
-
-Update a record
-```javascript
-import myDb from "./my-db.js";
-
-async function updateTodo(assignee, newAssignee) {
-  myDb.todos = myDb.todos.map(todo => todo.assignee === assignee ? { ...todo, assignee: newAssignee } : todo);
-}
-```
-
-Delete a record
-```javascript
-import myDb from "./my-db.js";
-
-async function deleteTodo(title, assignee) {
-  myDb.todos = myDb.todos.filter(todo => !(todo.assignee == assignee && todo.title === title));
-}
-```
-
-Count the number of items
-```javascript
-import myDb from "./my-db.js";
-
-async function countTodos(who) {
-  return myDb.todos.filter(todo => todo.assignee === who).length;
-}
-```
-
-Multiple databases
-```javascript
-import todosDbModule from "./todos-db.js";
-import authDb from "./auth-db.js";
-
-async function getTodos(who) {
-  return todosDbModule.todos.filter(todo => todo.assignee === who);
-  return authDb.users.filter(u => u.name === "jack");
-}
-```
-
-Plugin Configuration (Advanced)
-```json
-"isotropy-mongo-db": {
-  "dbModulePaths": { "todosDbModule": "./db.js" },
-}
-```
