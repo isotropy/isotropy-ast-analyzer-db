@@ -19,7 +19,7 @@ db.init({
 })
 ```
 
-Usage is easy. Start by importing the file you just created
+Usage is easy. Start by importing the file you just created.
 
 ```javascript
 import db from "./my-db";
